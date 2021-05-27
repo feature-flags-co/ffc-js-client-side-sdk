@@ -14,11 +14,11 @@ var FFCJsClient = {
         this.user = user;
     },
 
-    variation: function (featureFlagKey, defaultValue, isHttps = true) {
+    variation: function (featureFlagKey, isHttps, defaultValue) {
         const Http = new XMLHttpRequest();
-        const url = 'https://ffc-ce2.chinaeast2.cloudapp.chinacloudapi.cn';
-        if (isHttps == false)
-            url = 'http://ffc-ce2.chinaeast2.cloudapp.chinacloudapi.cn';
+        const url = 'http://ffc-ce2.chinaeast2.cloudapp.chinacloudapi.cn';
+        if (isHttps === true)
+            url = 'https://ffc-ce2.chinaeast2.cloudapp.chinacloudapi.cn';
         var postUrl = url + '/Variation/GetUserVariationResult';
 
         var xhr = new XMLHttpRequest();
@@ -41,6 +41,10 @@ var FFCJsClient = {
         if (xhr.status === 200) {
             console.log(xhr.responseText);
         }
+        if (xhr.responseText === 'true')
+            return true;
+        if (xhr.responseText === 'false')
+            return false;
 
         return xhr.responseText;
     }
