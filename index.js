@@ -14,11 +14,11 @@ var FFCJsClient = {
         this.user = user;
     },
 
-    variation: function (featureFlagKey, isHttps, defaultValue) {
+    variation: function (featureFlagKey, isHttps = true) {
         const Http = new XMLHttpRequest();
-        const url = 'http://ffc-ce2.chinaeast2.cloudapp.chinacloudapi.cn';
-        if (isHttps === true)
-            url = 'https://ffc-ce2.chinaeast2.cloudapp.chinacloudapi.cn';
+        const url = 'https://ffc-ce2.chinaeast2.cloudapp.chinacloudapi.cn';
+        if (isHttps === false || isHttps === 'false')
+            url = 'http://ffc-ce2.chinaeast2.cloudapp.chinacloudapi.cn';
         var postUrl = url + '/Variation/GetUserVariationResult';
 
         var xhr = new XMLHttpRequest();
