@@ -1,0 +1,16 @@
+{
+  "name": "ffc-js-client-sdk",
+  "version": "0.0.5",
+  "description": "https://github.com/feature-flags-co/ffc-js-client-sdk",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "feature-flags.co",
+    "敏捷开关",
+    "feature flags"
+  ],
+  "author": "北京天博助力科技有限公司",
+  "license": "ISC"
+}
