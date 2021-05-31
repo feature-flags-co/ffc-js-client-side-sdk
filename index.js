@@ -16,9 +16,9 @@ var FFCJsClient = {
 
     variation: function (featureFlagKey, isHttps = true) {
         const Http = new XMLHttpRequest();
-        const url = 'https://ffc-webapp-api-ce2.chinacloudsites.cn';
+        const url = 'https://api.feature-flags.co';
         if (isHttps === false || isHttps === 'false')
-            url = 'http://ffc-webapp-api-ce2.chinacloudsites.cn';
+            url = 'http://api.feature-flags.co';
         var postUrl = url + '/Variation/GetUserVariationResult';
 
         var xhr = new XMLHttpRequest();
