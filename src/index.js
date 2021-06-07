@@ -8,9 +8,9 @@ var FFCJsClient = {
         key: '',
         customizeProperties: []
     },
-    workspaceSecret: '',
-    initialize: function (workspaceSecret, user) {
-        this.workspaceSecret = workspaceSecret;
+    environmentSecret: '',
+    initialize: function (environmentSecret, user) {
+        this.environmentSecret = environmentSecret;
         this.user = user;
     },
 
@@ -28,7 +28,7 @@ var FFCJsClient = {
 
         var sendData = {
             featureFlagKeyName: featureFlagKey,
-            workspaceSecret: this.workspaceSecret,
+            environmentSecret: this.environmentSecret,
             ffUserName: this.user.userName,
             ffUserEmail: this.user.email,
             ffUserCountry: this.user.country,
