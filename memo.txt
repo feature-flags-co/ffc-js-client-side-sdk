@@ -1,0 +1,2 @@
+npm login
+cd into src then npm publish --access public
