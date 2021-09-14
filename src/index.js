@@ -22,7 +22,7 @@ var FFCJsClient = {
 
 			xhr.setRequestHeader("Content-type", "application/json");
 
-			const payload = Object.assign({}, {
+			const payload = data.map(d => Object.assign({}, {
 				secret: this.environmentSecret,
 				user: {
 					ffUserName: this.user.userName,
@@ -31,10 +31,10 @@ var FFCJsClient = {
 					ffUserKeyId: this.user.key,
 					ffUserCustomizedProperties: this.user.customizeProperties
 				}
-			}, data);
+			}, d));
 
 			//将用户输入值序列化成字符串
-			xhr.send(JSON.stringify([payload]));
+			xhr.send(JSON.stringify(payload));
 
 			if (xhr.status !== 200) {
 				return false;
