@@ -70,7 +70,13 @@ var FFCJsClient = {
 				return defaultResult;
 			}
 
-			return JSON.parse(xhr.responseText).variationValue;
+			const result = JSON.parse(xhr.responseText);
+
+			if (!!result['code'] && result['code'] === 'Error') {
+				return defaultResult;
+			}
+
+			return result.variationValue;
 		} catch (err) {
 			return defaultResult;
 		}
