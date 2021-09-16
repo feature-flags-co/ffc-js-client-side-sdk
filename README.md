@@ -40,7 +40,6 @@
     }]
   },
   {
-    message: 'deg',
     eventName: 'string1',
     customizedProperties: [{
       name: 'sex',
