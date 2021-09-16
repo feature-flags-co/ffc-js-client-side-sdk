@@ -30,4 +30,24 @@
   if (result === 'expected-value') {
       // do something
   }
+
+  // track custom event
+  const data = [{
+    eventName: 'string',
+    customizedProperties: [{
+      name: 'age',
+      value: '16'
+    }]
+  },
+  {
+    message: 'deg',
+    eventName: 'string1',
+    customizedProperties: [{
+      name: 'sex',
+      value: 'W'
+    }]
+  }];
+	
+  FFCJsClient.trackCustomEvent(data);
+
 ```

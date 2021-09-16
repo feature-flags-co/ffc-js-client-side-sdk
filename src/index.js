@@ -8,10 +8,16 @@ var FFCJsClient = {
     },
     environmentSecret: '',
     baseUrl: 'https://api.feature-flags.co',
-    initialize: function (environmentSecret, user, baseUrl) {
+	appType: 'Javascript',
+    initialize: function (environmentSecret, user, baseUrl, appType) {
 		this.environmentSecret = environmentSecret;
 		this.user = user;
 		this.baseUrl = baseUrl || this.baseUrl;
+		this.appType = appType || this.appType;
+	},
+	trackCustomEvent (data) {
+		data = data || [];
+		return this.track(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
 	},
 	track: function (data) {
 		try {
@@ -24,12 +30,15 @@ var FFCJsClient = {
 
 			const payload = data.map(d => Object.assign({}, {
 				secret: this.environmentSecret,
+				route: location.pathname,
+				timeStamp: Date.now(),
+				appType: this.appType,
 				user: {
-					ffUserName: this.user.userName,
-					ffUserEmail: this.user.email,
-					ffUserCountry: this.user.country,
-					ffUserKeyId: this.user.key,
-					ffUserCustomizedProperties: this.user.customizeProperties
+					fFUserName: this.user.userName,
+					fFUserEmail: this.user.email,
+					fFUserCountry: this.user.country,
+					fFUserKeyId: this.user.key,
+					fFUserCustomizedProperties: this.user.customizeProperties
 				}
 			}, d));
 
@@ -45,8 +54,12 @@ var FFCJsClient = {
 			return false;
 		}
 	},
-	variation: function (featureFlagKey, defaultResult = false) {
+	variation: function (featureFlagKey, defaultResult) {
 		try {
+			if (defaultResult === undefined || defaultResult === null) {
+				defaultResult = 'false';
+			}
+
 			var postUrl = this.baseUrl + '/Variation/GetMultiOptionVariation';
 
 			var xhr = new XMLHttpRequest();
