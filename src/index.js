@@ -1,5 +1,3 @@
-
-
 var FFCJsClient = {
     user: {
         userName: '',
@@ -9,45 +7,93 @@ var FFCJsClient = {
         customizeProperties: []
     },
     environmentSecret: '',
-    initialize: function (environmentSecret, user) {
-        this.environmentSecret = environmentSecret;
-        this.user = user;
-    },
+    baseUrl: 'https://api.feature-flags.co',
+	appType: 'Javascript',
+    initialize: function (environmentSecret, user, baseUrl, appType) {
+		this.environmentSecret = environmentSecret;
+		this.user = user;
+		this.baseUrl = baseUrl || this.baseUrl;
+		this.appType = appType || this.appType;
+	},
+	trackCustomEvent (data) {
+		data = data || [];
+		return this.track(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
+	},
+	track: function (data) {
+		try {
+			var postUrl = this.baseUrl + '/ExperimentsDataReceiver/PushData';
 
-    variation: function (featureFlagKey, isHttps = true) {
-        const Http = new XMLHttpRequest();
-        const url = 'https://api.feature-flags.co';
-        if (isHttps === false || isHttps === 'false')
-            url = 'http://api.feature-flags.co';
-        var postUrl = url + '/Variation/GetUserVariationResult';
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", postUrl, false);
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", postUrl, false);
+			xhr.setRequestHeader("Content-type", "application/json");
 
-        xhr.setRequestHeader("Content-type", "application/json");
+			const payload = data.map(d => Object.assign({}, {
+				secret: this.environmentSecret,
+				route: location.pathname,
+				timeStamp: Date.now(),
+				appType: this.appType,
+				user: {
+					fFUserName: this.user.userName,
+					fFUserEmail: this.user.email,
+					fFUserCountry: this.user.country,
+					fFUserKeyId: this.user.key,
+					fFUserCustomizedProperties: this.user.customizeProperties
+				}
+			}, d));
 
-        var sendData = {
-            featureFlagKeyName: featureFlagKey,
-            environmentSecret: this.environmentSecret,
-            ffUserName: this.user.userName,
-            ffUserEmail: this.user.email,
-            ffUserCountry: this.user.country,
-            ffUserKeyId: this.user.key,
-            ffUserCustomizedProperties: this.user.customizeProperties
-        }
-        //将用户输入值序列化成字符串
-        xhr.send(JSON.stringify(sendData));
+			//将用户输入值序列化成字符串
+			xhr.send(JSON.stringify(payload));
 
-        if (xhr.status === 200) {
-            console.log(xhr.responseText);
-        }
-        if (xhr.responseText === 'true')
-            return true;
-        if (xhr.responseText === 'false')
-            return false;
+			if (xhr.status !== 200) {
+				return false;
+			}
 
-        return xhr.responseText;
-    }
+			return true;
+		} catch (err) {
+			return false;
+		}
+	},
+	variation: function (featureFlagKey, defaultResult) {
+		try {
+			if (defaultResult === undefined || defaultResult === null) {
+				defaultResult = 'false';
+			}
+
+			var postUrl = this.baseUrl + '/Variation/GetMultiOptionVariation';
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", postUrl, false);
+
+			xhr.setRequestHeader("Content-type", "application/json");
+
+			var sendData = {
+				featureFlagKeyName: featureFlagKey,
+				environmentSecret: this.environmentSecret,
+				ffUserName: this.user.userName,
+				ffUserEmail: this.user.email,
+				ffUserCountry: this.user.country,
+				ffUserKeyId: this.user.key,
+				ffUserCustomizedProperties: this.user.customizeProperties
+			}
+			//将用户输入值序列化成字符串
+			xhr.send(JSON.stringify(sendData));
+
+			if (xhr.status !== 200) {
+				return defaultResult;
+			}
+
+			const result = JSON.parse(xhr.responseText);
+
+			if (!!result['code'] && result['code'] === 'Error') {
+				return defaultResult;
+			}
+
+			return result.variationValue;
+		} catch (err) {
+			return defaultResult;
+		}
+	}
 }
 
 export { FFCJsClient };
