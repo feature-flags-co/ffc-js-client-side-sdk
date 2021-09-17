@@ -62,9 +62,9 @@
             'OTQ4LTdmODEtNCUyMDIxMDkxNjEzMTA1NF9fMl9fNTJfXzExMl9fZGVmYXVsdF9jOGM4OA==',
             // '{secret key}',
             {
-                userName: '{用户名, 如sessionId}',
+                userName: 'javascript user',
                 email: '',
-                key: '{用户名唯一标识符, 如sessionId, cookieId等}',
+                key: 'javascriptuser@gmail.com',
                 customizeProperties: [ // 自定义属性，可加入任何在后台分流分群时所需要的属性
                     {
                         name: 'city',
@@ -73,28 +73,28 @@
                 ]
             });
 
-        const result = FFCJsClient.variation('{feature-flag-key}', '{默认返回值}');
-        if (result === '{variation 1}') {
+        const result = FFCJsClient.variation('主页---话术版本', '产品经理版1');
+        if (result === '产品经理版1') {
             document.getElementById('version-a').style.display = 'block';
         }
-        else if (result === '{variation 2}') {
+        else if (result === '程序员版1') {
             document.getElementById('version-b').style.display = 'block';
         }
-        else if (result === '{variation 3}') {
+        else if (result === '产品经理版2') {
             document.getElementById('version-c').style.display = 'block';
         }
         else {
             document.getElementById('version-a').style.display = 'block';
         }
-
+        
         document.addEventListener("click", function (e) {
             if (e.target && e.target.innerText == '使用文档' ||
                 e.target && e.target.innerText == '开始使用') {
-                FFCJsClient.track({
+                FFCJsClient.track([{
                     type: 'customEvent',
-                    timeStamp: Math.round(new Date().getTime()),
+                    timeStamp: Date.now(),
                     eventName: "homepage-click-" + e.target.innerText
-                })
+                }])
                 alert(e.target.innerText);
             }
         });
