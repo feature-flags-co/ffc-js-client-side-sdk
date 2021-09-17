@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="assets/css/bootstrap.min.511.css" rel="stylesheet" />
+    <script src="assets/js/bootstrap.min.js"></script>
+    <script src="index.js"></script>
+
+    <title>feature-flags.co</title>
+</head>
+
+<body style="background-color: rgb(217 239 233);">
+    <div class="container" id="version-a">
+        <div class="row">
+            <h3>颠覆性的产品交付模式, <strong style="font-size: 38px;"> 10倍 </strong>快于竞争对手<strong style="font-size: 38px;">
+                    抢占市场</strong></h3>
+        </div>
+    </div>
+    <div class="container" id="version-b">
+        <div class="row">
+            <h3>高频发布, 安枕无忧 <strong style="font-size: 38px;">程序员生发神器</strong></h3>
+        </div>
+    </div>
+    <div class="container" id="version-c">
+        <div class="row">
+            <h3>赋予产品经理控制功能的权利 <strong style="font-size: 38px;"> 10倍 </strong>快于竞争对手<strong style="font-size: 38px;">
+                    抢占市场</strong></h3>
+        </div>
+    </div>
+
+    <style>
+        .row{
+            margin-top: 20px;
+            text-align: center;
+        }
+        #version-a {
+            display: none;
+        }
+        #version-b {
+            display: none;
+        }
+        #version-c {
+            display: none;
+        }
+    </style>
+
+    <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
+    <script type="text/javascript">
+        let userName = Math.round(new Date().getTime() / 1000);
+
+        // 初始化sdk，传入环境Secret Key和用户信息
+        FFCJsClient.initialize(
+            'OTQ4LTdmODEtNCUyMDIxMDkxNjEzMTA1NF9fMl9fNTJfXzExMl9fZGVmYXVsdF9jOGM4OA==',
+            // '{secret key}',
+            {
+                userName: '{用户名, 如sessionId}',
+                email: '',
+                key: '{用户名唯一标识符, 如sessionId, cookieId等}',
+                customizeProperties: [ // 自定义属性，可加入任何在后台分流分群时所需要的属性
+                    {
+                        name: 'city',
+                        value: returnCitySN["cname"]
+                    }
+                ]
+            });
+
+        const result = FFCJsClient.variation('{feature-flag-key}', '{默认返回值}');
+        if (result === '{variation 1}') {
+            document.getElementById('version-a').style.display = 'block';
+        }
+        else if (result === '{variation 2}') {
+            document.getElementById('version-b').style.display = 'block';
+        }
+        else if (result === '{variation 3}') {
+            document.getElementById('version-c').style.display = 'block';
+        }
+        else {
+            document.getElementById('version-a').style.display = 'block';
+        }
+
+        document.addEventListener("click", function (e) {
+            if (e.target && e.target.innerText == '使用文档' ||
+                e.target && e.target.innerText == '开始使用') {
+                FFCJsClient.track({
+                    type: 'customEvent',
+                    timeStamp: Math.round(new Date().getTime()),
+                    eventName: "homepage-click-" + e.target.innerText
+                })
+                alert(e.target.innerText);
+            }
+        });
+
+    </script>
+</body>
+
+</html>
