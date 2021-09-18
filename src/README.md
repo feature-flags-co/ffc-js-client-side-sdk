@@ -15,11 +15,10 @@
 在根目录下打开demo文件夹，使用浏览器打开文件index.html，即可查看demo案例。
 
 
-## 集成SDK到自己的小程序
+## 集成SDK到自己的项目中
 
-### 在小程序根部的app.js中初始化敏捷开关
+### 初始化敏捷开关
 
-在app.js文件中添加
 ```javascript
   // 初始化sdk，传入环境Secret Key和用户信息
   FFCJsClient.initialize('YThmLWRmZjUtNCUyMDIxMDkxNzA3NTYyMV9fMl9fMjJfXzExNl9fZGVmYXVsdF82NTM3Mg==');
