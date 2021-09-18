@@ -92,11 +92,15 @@
             if (e.target && e.target.innerText == '使用文档' ||
                 e.target && e.target.innerText == '开始使用') {
 
-                await FFCJsClient.trackCustomEventAsync([
+                let rt = await FFCJsClient.trackCustomEventAsync([
                     {
                         eventName: "开始使用点击事件"
                     }
                 ]);
+                if (rt == true)
+                    alert("事件发送成功");
+                else
+                    alert("事件发送失败");
             }
         });
 
