@@ -18,21 +18,19 @@
 <body style="background-color: rgb(217 239 233);">
     <div class="container" id="version-a">
         <div class="row">
-            <h3>颠覆性的产品交付模式, <strong style="font-size: 38px;"> 10倍 </strong>快于竞争对手<strong style="font-size: 38px;">
-                    抢占市场</strong></h3>
+            <h3>产品经理版1</h3>
             <a href="#" style="font-size: 32px;">开始使用</a>
         </div>
     </div>
     <div class="container" id="version-b">
         <div class="row">
-            <h3>高频发布, 安枕无忧 <strong style="font-size: 38px;">程序员生发神器</strong></h3>
+            <h3>程序员版1</h3>
             <a href="#" style="font-size: 32px;">开始使用</a>
         </div>
     </div>
     <div class="container" id="version-c">
         <div class="row">
-            <h3>赋予产品经理控制功能的权利 <strong style="font-size: 38px;"> 10倍 </strong>快于竞争对手<strong style="font-size: 38px;">
-                    抢占市场</strong></h3>
+            <h3>产品经理版2</h3>
             <a href="#" style="font-size: 32px;">开始使用</a>
         </div>
     </div>
@@ -90,15 +88,15 @@
             document.getElementById('version-a').style.display = 'block';
         }
 
-        document.addEventListener("click", function (e) {
+        document.addEventListener("click", async function (e) {
             if (e.target && e.target.innerText == '使用文档' ||
                 e.target && e.target.innerText == '开始使用') {
-                FFCJsClient.track([{
-                    type: 'customEvent',
-                    timeStamp: Date.now(),
-                    eventName: "homepage-click-" + e.target.innerText
-                }])
-                alert(e.target.innerText);
+
+                await FFCJsClient.trackCustomEventAsync([
+                    {
+                        eventName: "开始使用点击事件"
+                    }
+                ]);
             }
         });
 
