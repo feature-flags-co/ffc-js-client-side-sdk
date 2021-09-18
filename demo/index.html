@@ -38,16 +38,19 @@
     </div>
 
     <style>
-        .row{
+        .row {
             margin-top: 20px;
             text-align: center;
         }
+
         #version-a {
             display: none;
         }
+
         #version-b {
             display: none;
         }
+
         #version-c {
             display: none;
         }
@@ -55,23 +58,23 @@
 
     <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
     <script type="text/javascript">
-        let userName = Math.round(new Date().getTime() / 1000);
+        let userName = Date.now();
 
         // 初始化sdk，传入环境Secret Key和用户信息
-        FFCJsClient.initialize(
-            'OTQ4LTdmODEtNCUyMDIxMDkxNjEzMTA1NF9fMl9fNTJfXzExMl9fZGVmYXVsdF9jOGM4OA==',
-            // '{secret key}',
-            {
-                userName: 'javascript user',
-                email: '',
-                key: 'javascriptuser@gmail.com',
-                customizeProperties: [ // 自定义属性，可加入任何在后台分流分群时所需要的属性
-                    {
-                        name: 'city',
-                        value: returnCitySN["cname"]
-                    }
-                ]
-            });
+        FFCJsClient.initialize('YThmLWRmZjUtNCUyMDIxMDkxNzA3NTYyMV9fMl9fMjJfXzExNl9fZGVmYXVsdF82NTM3Mg==');
+
+        // 初始化用户信息，通常这一步会在登录后被调用
+        FFCJsClient.initUserInfo({
+            userName: 'sdk-sample-js-1252',
+            email: '',
+            key: 'sdk-sample-js-1252',
+            customizeProperties: [
+                {
+                    name: "外放地址",
+                    value: "?from=zhihu&group=pm"
+                }
+            ]
+        });
 
         const result = FFCJsClient.variation('主页---话术版本', '产品经理版1');
         if (result === '产品经理版1') {
@@ -86,7 +89,7 @@
         else {
             document.getElementById('version-a').style.display = 'block';
         }
-        
+
         document.addEventListener("click", function (e) {
             if (e.target && e.target.innerText == '使用文档' ||
                 e.target && e.target.innerText == '开始使用') {
