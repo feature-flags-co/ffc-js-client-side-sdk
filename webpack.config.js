@@ -2,8 +2,8 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    'ffc': './src/index.ts',
-    'ffc.min': './src/index.ts'
+    'index': './src/index.ts',
+    'index.min': './src/index.ts'
   },
   devtool: 'source-map',
   module: {

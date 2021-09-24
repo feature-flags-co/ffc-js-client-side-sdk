@@ -3,12 +3,34 @@
 ## 安装
 
 === "使用npm安装指令"
-  ```bash
+  ```
   npm install ffc-js-client-sdk --save
   ```
-=== "在目标项目中引入源代码"
-  在根目录下打开demo文件夹，参考index.html的调用方法即可
+## 在目标项目中引入源代码
 
+### 浏览器 
+```
+<script src="../node_modules/ffc-js-client-sdk/index.js" ></script>
+```
+
+### Typescript
+
+```
+import { FFCJsClient } from 'ffc-js-client-sdk/esm';
+```
+如果显示如下错误:
+```
+Cannot find module 'ffc-js-client-sdk/esm'. Did you mean to set the 'moduleResolution' option to 'node', or to add aliases to the 'paths' option?
+```
+请在项目的tsconfig.json 文件中添加
+```
+  ...
+  "compilerOptions": {
+    ...
+    "moduleResolution": "node"
+  },
+  ...
+```
 
 ## Demo
 

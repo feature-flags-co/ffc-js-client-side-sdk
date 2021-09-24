@@ -1,10 +1,10 @@
 {
   "name": "ffc-js-client-sdk",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "https://github.com/feature-flags-co/ffc-js-client-sdk",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf ./umd ./commonjs ./esm && tsc && tsc -m es6 --outDir esm && webpack --mode production",
+    "build": "rimraf ./umd ./esm && tsc && webpack --mode production",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
@@ -20,8 +20,11 @@
   ],
   "author": "北京天博助力科技有限公司",
   "license": "ISC",
+  "files": [
+    "/esm",
+    "/umd"
+  ],
   "devDependencies": {
-    "@types/node": "^14.11.2",
     "gts": "^3.1.0",
     "rimraf": "^3.0.2",
     "ts-loader": "^9.2.6",

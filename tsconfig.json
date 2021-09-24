@@ -1,9 +1,9 @@
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "outDir": "commonjs",
+    "outDir": "esm",
     "noImplicitAny": true,
-    "module": "commonjs",
+    "module": "esnext",
     "lib": [ "es2015", "dom" ],
     "target": "es5",
     "allowJs": true,
