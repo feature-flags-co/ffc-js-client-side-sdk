@@ -1,2 +1,10 @@
-npm login
-cd into src then npm publish --access public
+1. create typescript project: https://www.digitalocean.com/community/tutorials/typescript-new-project
+
+_bundles/		// UMD bundles
+lib/			// ES5(commonjs) + source + .d.ts
+lib-esm/		// ES5(esmodule) + source + .d.ts
+
+2. publish
+    2.1 npm run build
+    2.2 npm login
+    2.3 

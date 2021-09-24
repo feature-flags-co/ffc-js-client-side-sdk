@@ -1,0 +1,17 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "outDir": "commonjs",
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "lib": [ "es2015", "dom" ],
+    "target": "es5",
+    "allowJs": true,
+    "sourceMap": true,
+    "declaration": true,
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ]
+}

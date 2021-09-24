@@ -2,14 +2,12 @@
 
 ## 安装
 
-### 使用npm安装指令
-
-```bash
-npm install ffc-js-client-sdk --save
+=== "使用npm安装指令"
+  ```bash
+  npm install ffc-js-client-sdk --save
   ```
-### 在目标项目中引入源代码
-
-在根目录下打开demo文件夹，参考index.html的调用方法即可
+=== "在目标项目中引入源代码"
+  在根目录下打开demo文件夹，参考index.html的调用方法即可
 
 
 ## Demo

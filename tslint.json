@@ -1,0 +1,9 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "./node_modules/gts/tslint.json"
+    ],
+    "jsRules": {},
+    "rules": {},
+    "rulesDirectory": []
+}
