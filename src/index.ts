@@ -16,14 +16,15 @@ export interface IFFCJsClient {
   environmentSecret: string,
   baseUrl: string,
   appType: string,
-  initialize: (environmentSecret: string, user: IFFCUser, baseUrl?: string, appType?: string) => void,
+  trackPageViewsAndClicks: () => void,
+  initialize: (environmentSecret: string, user?: IFFCUser, option?: IOption) => void,
   initUserInfo: (user: IFFCUser) => void,
-  trackCustomEventAsync: (data: IFFCCustomEvent[]) => void,
-  trackCustomEvent: (data: IFFCCustomEvent[]) => void,
-  trackAsync: (data: IFFCCustomEvent[]) => void,
-  track: (data: IFFCCustomEvent[]) => void,
-  variationAsync: (featureFlagKey: string, defaultResult: string) => void,
-  variation: (featureFlagKey: string, defaultResult: string) => void
+  trackCustomEventAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
+  trackCustomEvent: (data: IFFCCustomEvent[]) => boolean,
+  trackAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
+  track: (data: IFFCCustomEvent[]) => boolean,
+  variationAsync: (featureFlagKey: string, defaultResult: string) => Promise<string>,
+  variation: (featureFlagKey: string, defaultResult: string) => string
 }
 
 export interface IFFCCustomEvent {
@@ -47,6 +48,12 @@ function getVariationPayloadStr(featureFlagKey: string, option: any): string {
   });
 }
 
+export interface IOption {
+  shouldTrackPageViewsAndClicks: boolean,
+  baseUrl?: string,
+  appType?: string
+}
+
 export const FFCJsClient : IFFCJsClient = {
   user: {
       userName: '',
@@ -58,26 +65,64 @@ export const FFCJsClient : IFFCJsClient = {
   environmentSecret: '',
   baseUrl: 'https://api.feature-flags.co',
   appType: 'Javascript',
-  initialize: function (environmentSecret: string, user: IFFCUser, baseUrl?: string, appType?: string) {
+  async trackPageViewsAndClicks () {    
+    const self = this;
+    history.pushState = ( f => function pushState(this: any){
+      const argumentsTyped: any = arguments;
+      var ret = f.apply(this, argumentsTyped);
+      window.dispatchEvent(new Event('pushstate'));
+      window.dispatchEvent(new Event('locationchange'));
+      return ret;
+    })(history.pushState);
+    
+    history.replaceState = ( f => function replaceState(this: any){
+      const argumentsTyped: any = arguments;
+      var ret = f.apply(this, argumentsTyped);
+      window.dispatchEvent(new Event('replacestate'));
+      window.dispatchEvent(new Event('locationchange'));
+      return ret;
+    })(history.replaceState);
+    
+    window.addEventListener('popstate',()=>{
+      window.dispatchEvent(new Event('locationchange'))
+    });
+      
+    window.addEventListener("locationchange", function () {
+      let current_page_name = window.location.href;
+      const data = [{
+        route: window.location.href,
+        eventName: 'pageview'
+      }];
+
+      self.trackAsync(data);
+    });
+  },
+  initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     this.environmentSecret = environmentSecret;
-    this.user = user;
-    this.baseUrl = baseUrl || this.baseUrl;
-    this.appType = appType || this.appType;
+    if (user) {
+      this.user = user;
+    }
+    
+    this.baseUrl = option?.baseUrl || this.baseUrl;
+    this.appType = option?.appType || this.appType;
+    if (option?.shouldTrackPageViewsAndClicks) {
+      this.trackPageViewsAndClicks();
+    }
   },
   initUserInfo (user) {
     if (!!user) {
       this.user = Object.assign({}, this.user, user);
     }
   },
-  async trackCustomEventAsync (data: IFFCCustomEvent[]) {
+  async trackCustomEventAsync (data: IFFCCustomEvent[]): Promise<boolean> {
     data = data || [];
     return await this.trackAsync(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
   },
-  trackCustomEvent (data: IFFCCustomEvent[]) {
+  trackCustomEvent (data: IFFCCustomEvent[]): boolean {
     data = data || [];
     return this.track(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
   },
-  async trackAsync(data: IFFCCustomEvent[]) {
+  async trackAsync(data: IFFCCustomEvent[]): Promise<boolean> {
     try {
       var postUrl = this.baseUrl + '/ExperimentsDataReceiver/PushData';
 
@@ -114,7 +159,7 @@ export const FFCJsClient : IFFCJsClient = {
       return false;
     }
   },
-  track: function (data: IFFCCustomEvent[]) {
+  track: function (data: IFFCCustomEvent[]): boolean {
     try {
       var postUrl = this.baseUrl + '/ExperimentsDataReceiver/PushData';
 
@@ -149,7 +194,7 @@ export const FFCJsClient : IFFCJsClient = {
       return false;
     }
   },
-  async variationAsync(featureFlagKey: string, defaultResult: string) {
+  async variationAsync(featureFlagKey: string, defaultResult: string): Promise<string> {
     if (defaultResult === undefined || defaultResult === null) {
       defaultResult = 'false';
     }
@@ -177,7 +222,7 @@ export const FFCJsClient : IFFCJsClient = {
       return defaultResult;
     }
   },
-  variation: function (featureFlagKey: string, defaultResult: string) {
+  variation: function (featureFlagKey: string, defaultResult: string): string {
     if (defaultResult === undefined || defaultResult === null) {
       defaultResult = 'false';
     }
