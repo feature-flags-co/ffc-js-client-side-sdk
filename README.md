@@ -13,7 +13,7 @@
 <script src="../node_modules/ffc-js-client-sdk/umd/index.js" ></script>
 ```
 
-### Typescript
+### Typescript 以及 支持 import 语法的 JavaScript 
 
 ```
 import { FFCJsClient } from 'ffc-js-client-sdk/esm';
