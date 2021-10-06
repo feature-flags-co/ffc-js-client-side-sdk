@@ -10,7 +10,7 @@
 
 ### 浏览器 
 ```
-<script src="../node_modules/ffc-js-client-sdk/index.js" ></script>
+<script src="../node_modules/ffc-js-client-sdk/umd/index.js" ></script>
 ```
 
 ### Typescript
