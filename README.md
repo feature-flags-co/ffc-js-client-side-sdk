@@ -2,7 +2,7 @@
 
 ## 安装
 
-=== "使用npm安装指令"
+使用npm安装指令
   ```
   npm install ffc-js-client-sdk --save
   ```
