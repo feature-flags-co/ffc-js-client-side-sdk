@@ -54,6 +54,8 @@ export interface IOption {
   appType?: string
 }
 
+const FF_STORAGE_KEY_PREFIX = 'ffc_ff_';
+
 export const FFCJsClient : IFFCJsClient = {
   user: {
       userName: '',
@@ -194,7 +196,9 @@ export const FFCJsClient : IFFCJsClient = {
       return false;
     }
   },
-  async variationAsync(featureFlagKey: string, defaultResult: string): Promise<string> {
+  async variationAsync(featureFlagKey: string, defaultResult?: string): Promise<string> {
+    const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
+
     if (defaultResult === undefined || defaultResult === null) {
       defaultResult = 'false';
     }
@@ -215,14 +219,21 @@ export const FFCJsClient : IFFCJsClient = {
         throw new Error(`An error has occured: ${response.status}`);
       }
 
-      const result = await response.text();
-      return JSON.parse(result);
+      const result = JSON.parse(await response.text());
+      if (!!result['code'] && result['code'] === 'Error') {
+        return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
+      }
+
+      localStorage.setItem(ffcKey, result.variationValue);
+      return result.variationValue;
     } catch(error) {
       console.log(error);
-      return defaultResult;
+      return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
     }
   },
-  variation: function (featureFlagKey: string, defaultResult: string): string {
+  variation: function (featureFlagKey: string, defaultResult?: string): string {
+    const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
+
     if (defaultResult === undefined || defaultResult === null) {
       defaultResult = 'false';
     }
@@ -245,12 +256,14 @@ export const FFCJsClient : IFFCJsClient = {
       const result = JSON.parse(xhr.responseText);
 
       if (!!result['code'] && result['code'] === 'Error') {
-        return defaultResult;
+        return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
       }
 
+      localStorage.setItem(ffcKey, result.variationValue);
       return result.variationValue;
-    } catch (err) {
-      return defaultResult;
+    } catch (error) {
+      console.log(error);
+      return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
     }
   }
 };
