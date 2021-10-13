@@ -23,8 +23,8 @@ export interface IFFCJsClient {
   trackCustomEvent: (data: IFFCCustomEvent[]) => boolean,
   trackAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
   track: (data: IFFCCustomEvent[]) => boolean,
-  variationAsync: (featureFlagKey: string, defaultResult: string) => Promise<string>,
-  variation: (featureFlagKey: string, defaultResult: string) => string
+  variationAsync: (featureFlagKey: string, defaultResult?: string) => Promise<string>,
+  variation: (featureFlagKey: string, defaultResult?: string) => string
 }
 
 export interface IFFCCustomEvent {
