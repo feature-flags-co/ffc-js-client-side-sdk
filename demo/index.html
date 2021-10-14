@@ -10,7 +10,7 @@
     <!-- Bootstrap CSS -->
     <link href="assets/css/bootstrap.min.511.css" rel="stylesheet" />
     <script src="assets/js/bootstrap.min.js"></script>
-    <script src="../node_modules/ffc-js-client-sdk/umd/index.js"></script>
+    <script src="../umd/index.js"></script>
 
     <title>feature-flags.co</title>
 </head>
@@ -64,7 +64,7 @@
         // 初始化用户信息，通常这一步会在登录后被调用
         FFCJsClient.initUserInfo({
             userName: 'sdk-sample-js-1252',
-            email: '',
+            email: 'abc@myemail.com',
             key: 'sdk-sample-js-1252',
             customizeProperties: [
                 {
@@ -73,8 +73,8 @@
                 }
             ]
         });
+        let result = FFCJsClient.variation('主页---话术版本', '产品经理版1');
 
-        const result = FFCJsClient.variation('主页---话术版本', '产品经理版1');
         if (result === '产品经理版1') {
             document.getElementById('version-a').style.display = 'block';
         }
