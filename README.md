@@ -43,8 +43,17 @@ Cannot find module 'ffc-js-client-sdk/esm'. Did you mean to set the 'moduleResol
 
 ```javascript
   // 初始化sdk，传入环境Secret Key和用户信息
-  FFCJsClient.initialize('YThmLWRmZjUtNCUyMDIxMDkxNzA3NTYyMV9fMl9fMjJfXzExNl9fZGVmYXVsdF82NTM3Mg==');
+  FFCJsClient.initialize('YThmLWRmZjUtNCUyMDIxMDkxNzA3NTYyMV9fMl9fMjJfXzExNl9fZGVmYXVsdF82NTM3Mg==', [option]);
 ```
+option 为可选参数，包含如下可选参数：
+```
+{
+  baseUrl?: string, // 敏捷开关服务器地址 （只有使用本地安装的服务器才需要设置此参数）
+  appType?: string, // 应用类型， 默认为 'Javascript'
+  throttleWait?: number // throttle 的等待时间， 单位为毫秒，涉及 trackCustomEventAsync， trackCustomEvent， trackAsync， track, variationAsync，variation 这几个方法
+}
+```
+
 ### 在用户登录后传递用户信息给敏捷开关SDK
 ```javascript
   // 初始化用户信息，通常这一步会在登录后被调用
