@@ -2,3 +2,5 @@ node_modules
 umd
 esm
 commonjs
+
+tests

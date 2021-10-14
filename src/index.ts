@@ -35,7 +35,8 @@ export interface IFFCCustomEvent {
 export interface IOption {
   shouldTrackPageViewsAndClicks: boolean,
   baseUrl?: string,
-  appType?: string
+  appType?: string,
+  throttleWait?: number
 }
 
 const FF_STORAGE_KEY_PREFIX = 'ffc_ff_';
@@ -50,6 +51,34 @@ let _user: IFFCUser = {
 let _environmentSecret = '';
 let _baseUrl = 'https://api.feature-flags.co';
 let _appType = 'Javascript';
+let _throttleWait: number = 5000; // millionseconds
+
+// a simplified throttle function, if more options are needed, go to underscore or lodash
+// call back should be a function
+// current function throttle with the wait time and the current url, the same function will be called only once on the same webpage
+function throttle (callback: any): any {
+  let waiting = false; 
+  let result = null;
+  let priviousFootprint: string | null = null;
+  
+  let getFootprint = (args: any): string => document.location.href + JSON.stringify(args);
+
+  return function () {
+    let footprint = getFootprint(arguments);
+        
+    if (!waiting || footprint !== priviousFootprint) {    
+      waiting = true;
+      priviousFootprint = footprint;
+      result = callback.apply(null, arguments);
+      
+      setTimeout(function () {
+          waiting = false;
+      }, _throttleWait);
+    }
+
+    return result;
+  }
+}
 
 function getVariationPayloadStr(featureFlagKey: string): string {
   return JSON.stringify({
@@ -77,25 +106,6 @@ function getTrackPayloadStr(data: IFFCCustomEvent[]): string {
       fFUserCustomizedProperties: _user.customizeProperties
     }
   }, d)));
-}
-
-// a simplified throttle function, if more options are needed, go to underscore or lodash
-// call back should be a function
-function throttle (callback: any, limit: number) {
-  let waiting = false; 
-  let result: any = null;  
-                 
-  return function () {                      
-      if (!waiting) {
-          result = callback.apply(null, arguments);  
-          waiting = true;
-          setTimeout(function () {  
-              waiting = false;
-          }, limit);
-      }
-
-      return result;
-  }
 }
 
 export const FFCJsClient : IFFCJsClient = {
@@ -140,6 +150,8 @@ export const FFCJsClient : IFFCJsClient = {
     
     _baseUrl = option?.baseUrl || _baseUrl;
     _appType = option?.appType || _appType;
+    _throttleWait = option?.throttleWait || _throttleWait;
+
     if (option?.shouldTrackPageViewsAndClicks) {
       this.trackPageViewsAndClicks();
     }
@@ -149,15 +161,15 @@ export const FFCJsClient : IFFCJsClient = {
       _user = Object.assign({}, _user, user);
     }
   },
-  async trackCustomEventAsync (data: IFFCCustomEvent[]): Promise<boolean> {
+  trackCustomEventAsync: async (data: IFFCCustomEvent[]) => {
     data = data || [];
-    return await this.trackAsync(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
+    return await FFCJsClient.trackAsync(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
   },
-  trackCustomEvent (data: IFFCCustomEvent[]): boolean {
+  trackCustomEvent: (data: IFFCCustomEvent[]) => {
     data = data || [];
-    return this.track(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
+    return FFCJsClient.track(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
   },
-  async trackAsync(data: IFFCCustomEvent[]): Promise<boolean> {
+  trackAsync: throttle(async (data: IFFCCustomEvent[]): Promise<boolean> => {
     try {
       var postUrl = _baseUrl + '/ExperimentsDataReceiver/PushData';
 
@@ -179,8 +191,8 @@ export const FFCJsClient : IFFCJsClient = {
       console.log(error);
       return false;
     }
-  },
-  track: function (data: IFFCCustomEvent[]): boolean {
+  }),
+  track: throttle((data: IFFCCustomEvent[]): boolean => {
     try {
       var postUrl = _baseUrl + '/ExperimentsDataReceiver/PushData';
 
@@ -200,43 +212,45 @@ export const FFCJsClient : IFFCJsClient = {
     } catch (err) {
       return false;
     }
-  },
-  async variationAsync(featureFlagKey: string, defaultResult?: string): Promise<string> {
-    const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
-
-    if (defaultResult === undefined || defaultResult === null) {
-      defaultResult = 'false';
-    }
+  }),
+  variationAsync: async (featureFlagKey: string, defaultResult?: string) => {
+    return await throttle(async (featureFlagKey: string, defaultResult?: string): Promise<string> => {
+      const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
     
-    try {
-      var postUrl = _baseUrl + '/Variation/GetMultiOptionVariation';
-
-      const response = await fetch(postUrl, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-          },
-          body: getVariationPayloadStr(featureFlagKey)
-      });
-
-      if (!response.ok) {
-        throw new Error(`An error has occured: ${response.status}`);
+      if (defaultResult === undefined || defaultResult === null) {
+        defaultResult = 'false';
       }
-
-      const result = JSON.parse(await response.text());
-      if (!!result['code'] && result['code'] === 'Error') {
+      
+      try {
+        var postUrl = _baseUrl + '/Variation/GetMultiOptionVariation';
+    
+        const response = await fetch(postUrl, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+            },
+            body: getVariationPayloadStr(featureFlagKey)
+        });
+    
+        if (!response.ok) {
+          throw new Error(`An error has occured: ${response.status}`);
+        }
+    
+        const result = JSON.parse(await response.text());
+        if (!!result['code'] && result['code'] === 'Error') {
+          return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
+        }
+    
+        localStorage.setItem(ffcKey, result.variationValue);
+        return result.variationValue;
+      } catch(error) {
+        console.log(error);
         return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
       }
-
-      localStorage.setItem(ffcKey, result.variationValue);
-      return result.variationValue;
-    } catch(error) {
-      console.log(error);
-      return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
-    }
+    })(featureFlagKey, defaultResult);
   },
-  variation: function (featureFlagKey: string, defaultResult?: string): string {
+  variation: throttle((featureFlagKey: string, defaultResult?: string): string => {
     const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
 
     if (defaultResult === undefined || defaultResult === null) {
@@ -270,5 +284,5 @@ export const FFCJsClient : IFFCJsClient = {
       console.log(error);
       return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
     }
-  }
+  })
 };
