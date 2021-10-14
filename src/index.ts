@@ -1,7 +1,7 @@
 export interface IFFCUser {
   userName: string,
   email: string,
-  country: string,
+  country?: string,
   key: string,
   customizeProperties?: IFFCCustomizedProperty[]
 }
