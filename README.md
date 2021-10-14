@@ -50,7 +50,7 @@ option 为可选参数，包含如下可选参数：
 {
   baseUrl?: string, // 敏捷开关服务器地址 （只有使用本地安装的服务器才需要设置此参数）
   appType?: string, // 应用类型， 默认为 'Javascript'
-  throttleWait?: number // throttle 的等待时间， 单位为毫秒，涉及 trackCustomEventAsync， trackCustomEvent， trackAsync， track, variationAsync，variation 这几个方法
+  throttleWait?: number // throttle 的等待时间， 单位为毫秒，默认值为5000， 涉及 trackCustomEventAsync， trackCustomEvent， trackAsync， track, variationAsync，variation 这几个方法
 }
 ```
 
