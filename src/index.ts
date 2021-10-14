@@ -55,13 +55,13 @@ let _throttleWait: number = 5000; // millionseconds
 
 // a simplified throttle function, if more options are needed, go to underscore or lodash
 // call back should be a function
-// current function throttle with the wait time and the current url, the same function will be called only once on the same webpage
+// current function throttle with the wait time, the same function will be called only once within the time window
 function throttle (callback: any): any {
   let waiting = false; 
   let result = null;
   let priviousFootprint: string | null = null;
   
-  let getFootprint = (args: any): string => document.location.href + JSON.stringify(args);
+  let getFootprint = (args: any): string => JSON.stringify(args);
 
   return function () {
     let footprint = getFootprint(arguments);
@@ -169,7 +169,7 @@ export const FFCJsClient : IFFCJsClient = {
     data = data || [];
     return FFCJsClient.track(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
   },
-  trackAsync: throttle(async (data: IFFCCustomEvent[]): Promise<boolean> => {
+  trackAsync: async (data: IFFCCustomEvent[]): Promise<boolean> => {
     try {
       var postUrl = _baseUrl + '/ExperimentsDataReceiver/PushData';
 
@@ -191,8 +191,8 @@ export const FFCJsClient : IFFCJsClient = {
       console.log(error);
       return false;
     }
-  }),
-  track: throttle((data: IFFCCustomEvent[]): boolean => {
+  },
+  track: (data: IFFCCustomEvent[]): boolean => {
     try {
       var postUrl = _baseUrl + '/ExperimentsDataReceiver/PushData';
 
@@ -212,7 +212,7 @@ export const FFCJsClient : IFFCJsClient = {
     } catch (err) {
       return false;
     }
-  }),
+  },
   variationAsync: async (featureFlagKey: string, defaultResult?: string) => {
     return await throttle(async (featureFlagKey: string, defaultResult?: string): Promise<string> => {
       const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
