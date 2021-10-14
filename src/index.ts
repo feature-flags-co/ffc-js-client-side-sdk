@@ -12,10 +12,6 @@ export interface IFFCCustomizedProperty {
 }
 
 export interface IFFCJsClient {
-  user: IFFCUser,
-  environmentSecret: string,
-  baseUrl: string,
-  appType: string,
   trackPageViewsAndClicks: () => void,
   initialize: (environmentSecret: string, user?: IFFCUser, option?: IOption) => void,
   initUserInfo: (user: IFFCUser) => void,
@@ -36,18 +32,6 @@ export interface IFFCCustomEvent {
   user?: IFFCUser
 }
 
-function getVariationPayloadStr(featureFlagKey: string, option: any): string {
-  return JSON.stringify({
-    featureFlagKeyName: featureFlagKey,
-    environmentSecret: option.environmentSecret,
-    ffUserName: option.user.userName,
-    ffUserEmail: option.user.email,
-    ffUserCountry: option.user.country,
-    ffUserKeyId: option.user.key,
-    ffUserCustomizedProperties: option.user.customizeProperties
-  });
-}
-
 export interface IOption {
   shouldTrackPageViewsAndClicks: boolean,
   baseUrl?: string,
@@ -56,17 +40,66 @@ export interface IOption {
 
 const FF_STORAGE_KEY_PREFIX = 'ffc_ff_';
 
+let _user: IFFCUser = {
+  userName: '',
+  email: '',
+  country: '',
+  key: '',
+  customizeProperties: []
+};
+let _environmentSecret = '';
+let _baseUrl = 'https://api.feature-flags.co';
+let _appType = 'Javascript';
+
+function getVariationPayloadStr(featureFlagKey: string): string {
+  return JSON.stringify({
+    featureFlagKeyName: featureFlagKey,
+    environmentSecret: _environmentSecret,
+    ffUserName: _user.userName,
+    ffUserEmail: _user.email,
+    ffUserCountry: _user.country,
+    ffUserKeyId: _user.key,
+    ffUserCustomizedProperties: _user.customizeProperties
+  });
+}
+
+function getTrackPayloadStr(data: IFFCCustomEvent[]): string {
+  return JSON.stringify(data.map(d => Object.assign({}, {
+    secret: _environmentSecret,
+    route: location.pathname,
+    timeStamp: Date.now(),
+    appType: _appType,
+    user: {
+      fFUserName: _user.userName,
+      fFUserEmail: _user.email,
+      fFUserCountry: _user.country,
+      fFUserKeyId: _user.key,
+      fFUserCustomizedProperties: _user.customizeProperties
+    }
+  }, d)));
+}
+
+// a simplified throttle function, if more options are needed, go to underscore or lodash
+// call back should be a function
+function throttle (callback: any, limit: number) {
+  let waiting = false; 
+  let result: any = null;  
+                 
+  return function () {                      
+      if (!waiting) {
+          result = callback.apply(null, arguments);  
+          waiting = true;
+          setTimeout(function () {  
+              waiting = false;
+          }, limit);
+      }
+
+      return result;
+  }
+}
+
 export const FFCJsClient : IFFCJsClient = {
-  user: {
-      userName: '',
-      email: '',
-      country: '',
-      key: '',
-      customizeProperties: []
-  },
-  environmentSecret: '',
-  baseUrl: 'https://api.feature-flags.co',
-  appType: 'Javascript',
+
   async trackPageViewsAndClicks () {    
     const self = this;
     history.pushState = ( f => function pushState(this: any){
@@ -100,20 +133,20 @@ export const FFCJsClient : IFFCJsClient = {
     });
   },
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
-    this.environmentSecret = environmentSecret;
+    _environmentSecret = environmentSecret;
     if (user) {
-      this.user = user;
+      _user = Object.assign({}, _user, user);
     }
     
-    this.baseUrl = option?.baseUrl || this.baseUrl;
-    this.appType = option?.appType || this.appType;
+    _baseUrl = option?.baseUrl || _baseUrl;
+    _appType = option?.appType || _appType;
     if (option?.shouldTrackPageViewsAndClicks) {
       this.trackPageViewsAndClicks();
     }
   },
   initUserInfo (user) {
     if (!!user) {
-      this.user = Object.assign({}, this.user, user);
+      _user = Object.assign({}, _user, user);
     }
   },
   async trackCustomEventAsync (data: IFFCCustomEvent[]): Promise<boolean> {
@@ -126,21 +159,7 @@ export const FFCJsClient : IFFCJsClient = {
   },
   async trackAsync(data: IFFCCustomEvent[]): Promise<boolean> {
     try {
-      var postUrl = this.baseUrl + '/ExperimentsDataReceiver/PushData';
-
-      const payload = data.map(d => Object.assign({}, {
-        secret: this.environmentSecret,
-        route: location.pathname,
-        timeStamp: Date.now(),
-        appType: this.appType,
-        user: {
-          fFUserName: this.user.userName,
-          fFUserEmail: this.user.email,
-          fFUserCountry: this.user.country,
-          fFUserKeyId: this.user.key,
-          fFUserCustomizedProperties: this.user.customizeProperties
-        }
-      }, d));
+      var postUrl = _baseUrl + '/ExperimentsDataReceiver/PushData';
 
       const response = await fetch(postUrl, {
         method: 'POST',
@@ -148,7 +167,7 @@ export const FFCJsClient : IFFCJsClient = {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
           },
-          body: JSON.stringify(payload)
+          body: getTrackPayloadStr(data)
       });
 
       if (!response.ok) {
@@ -163,29 +182,15 @@ export const FFCJsClient : IFFCJsClient = {
   },
   track: function (data: IFFCCustomEvent[]): boolean {
     try {
-      var postUrl = this.baseUrl + '/ExperimentsDataReceiver/PushData';
+      var postUrl = _baseUrl + '/ExperimentsDataReceiver/PushData';
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", postUrl, false);
 
       xhr.setRequestHeader("Content-type", "application/json");
 
-      const payload = data.map(d => Object.assign({}, {
-        secret: this.environmentSecret,
-        route: location.pathname,
-        timeStamp: Date.now(),
-        appType: this.appType,
-        user: {
-          fFUserName: this.user.userName,
-          fFUserEmail: this.user.email,
-          fFUserCountry: this.user.country,
-          fFUserKeyId: this.user.key,
-          fFUserCustomizedProperties: this.user.customizeProperties
-        }
-      }, d));
-
       //将用户输入值序列化成字符串
-      xhr.send(JSON.stringify(payload));
+      xhr.send(getTrackPayloadStr(data));
 
       if (xhr.status !== 200) {
         return false;
@@ -204,7 +209,7 @@ export const FFCJsClient : IFFCJsClient = {
     }
     
     try {
-      var postUrl = this.baseUrl + '/Variation/GetMultiOptionVariation';
+      var postUrl = _baseUrl + '/Variation/GetMultiOptionVariation';
 
       const response = await fetch(postUrl, {
         method: 'POST',
@@ -212,7 +217,7 @@ export const FFCJsClient : IFFCJsClient = {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
           },
-          body: getVariationPayloadStr(featureFlagKey, this)
+          body: getVariationPayloadStr(featureFlagKey)
       });
 
       if (!response.ok) {
@@ -239,7 +244,7 @@ export const FFCJsClient : IFFCJsClient = {
     }
 
     try {
-      var postUrl = this.baseUrl + '/Variation/GetMultiOptionVariation';
+      var postUrl = _baseUrl + '/Variation/GetMultiOptionVariation';
 
       var xhr = new XMLHttpRequest();
       xhr.open("POST", postUrl, false);
@@ -247,7 +252,7 @@ export const FFCJsClient : IFFCJsClient = {
       xhr.setRequestHeader("Content-type", "application/json");
 
       //将用户输入值序列化成字符串
-      xhr.send(getVariationPayloadStr(featureFlagKey, this));
+      xhr.send(getVariationPayloadStr(featureFlagKey));
 
       if (xhr.status !== 200) {
         return defaultResult;

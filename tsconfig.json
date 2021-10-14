@@ -2,7 +2,7 @@
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
     "outDir": "esm",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "module": "esnext",
     "lib": [ "es2015", "dom" ],
     "target": "es5",
