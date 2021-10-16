@@ -278,10 +278,10 @@
                 <!---->
             </nz-table>
         </div>
-        <ul class="abc bcd">
-            <li>张三公司</li>
-            <li>李四公司</li>
-            <li>王二麻子公司</li>
+        <ul class="abc bcd" style="display:none">
+            <li>张三公司 1</li>
+            <li>李四公司 1</li>
+            <li>王二麻子公司 1</li>
         </ul>
         <ul class="gongsi">
             <li>张三公司</li>
@@ -301,62 +301,15 @@
 <script src="../umd/index.js"></script>
 <script type="text/javascript">
 
-    function checkVariation(featureFlagCssSelectors) {
-        featureFlagCssSelectors.forEach(ffcsSelector => {
-            const result = FFCJsClient.variation(ffcsSelector.featureFlagKey, '实验版本1');
-            console.log(result);
-            if (ffcsSelector.cssSelectors && ffcsSelector.cssSelectors.length > 0) {
-                for (let i = 0; i < ffcsSelector.cssSelectors.length; i++) {
-                    let cssSelector = ffcsSelector.cssSelectors[i];
-                    if (cssSelector.variation.variationValue !== result) {
-                        let nodes = document.querySelectorAll(cssSelector.cssSelector);
-                        nodes.forEach(node => {
-                            node.remove();
-                        });
-                    }
-                    else {
-                        let nodes = document.querySelectorAll(cssSelector.cssSelector);
-                        nodes.forEach(node => {
-                            if (node.style.display == 'none')
-                                node.style.display = 'block';
-                        });
-                    }
-                }
-            }
-        });
-    }
+    let envKey = 'YjRlLWY1YjEtNCUyMDIxMDYwNzA2NTYwOF9fMl9fM19fN19fZGVmYXVsdF84NDNlMw==';
+    FFCJsClient.initialize(envKey, null, {baseUrl: 'http://localhost:5001'});
 
-    let envKey = 'ZmFhLTg1MTMtNCUyMDIxMDYwOTEzNTU1MV9fMl9fM19fNV9fZGVmYXVsdF8wNTU4OQ==';
-    FFCJsClient.initialize(envKey);
-    FFCJsClient.baseUrl = 'http://localhost:5001';
     FFCJsClient.initUserInfo({
         userName: 'local-debug-user-007',
         email: '',
         key: 'local-debug-user-007',
         customizeProperties: []
     });
-    let featureFlagCssSelectors = [];
-    var getUrl = 'http://localhost:5001/api/FeatureFlagHtmlDetectionSetting/Settings/' + envKey;
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", getUrl, false);
-    xhr.setRequestHeader("Content-type", "application/json");
-    xhr.onreadystatechange = function () {//服务器返回值的处理函数，此处使用匿名函数进行实现
-        if (xhr.readyState == 4 && xhr.status == 200) {//
-            var responseText = xhr.responseText;
-            featureFlagCssSelectors = JSON.parse(responseText);
-            checkVariation(featureFlagCssSelectors);
-        }
-    };
-    xhr.send(null);
-
-    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
-    var callback = function (mutationsList) {
-        if (mutationsList && mutationsList.length > 0) {
-            checkVariation(featureFlagCssSelectors);
-        }
-    };
-    (new MutationObserver(callback))
-        .observe(document.body, { attributes: true, childList: true, subtree: true });
 
 </script>
 

@@ -1,43 +1,10 @@
-export interface IFFCUser {
-  userName: string,
-  email: string,
-  country?: string,
-  key: string,
-  customizeProperties?: IFFCCustomizedProperty[]
-}
+import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode } from "./types";
 
-export interface IFFCCustomizedProperty {
-  name: string,
-  value: string | number | boolean
-}
-
-export interface IFFCJsClient {
-  trackPageViewsAndClicks: () => void,
-  initialize: (environmentSecret: string, user?: IFFCUser, option?: IOption) => void,
-  initUserInfo: (user: IFFCUser) => void,
-  trackCustomEventAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
-  trackCustomEvent: (data: IFFCCustomEvent[]) => boolean,
-  trackAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
-  track: (data: IFFCCustomEvent[]) => boolean,
-  variationAsync: (featureFlagKey: string, defaultResult?: string) => Promise<string>,
-  variation: (featureFlagKey: string, defaultResult?: string) => string
-}
-
-export interface IFFCCustomEvent {
-  secret?: string,
-  route?: string,
-  appType?: string,
-  eventName: string,
-  numericValue?: number,
-  customizedProperties?: IFFCCustomizedProperty[],
-  user?: IFFCUser
-}
-
-export interface IOption {
-  shouldTrackPageViewsAndClicks: boolean,
-  baseUrl?: string,
-  appType?: string,
-  throttleWait?: number
+declare global {
+  interface Window {
+    WebKitMutationObserver:any;
+    MozMutationObserver: any;
+  }
 }
 
 const FF_STORAGE_KEY_PREFIX = 'ffc_ff_';
@@ -110,6 +77,77 @@ function getTrackPayloadStr(data: IFFCCustomEvent[]): string {
   }, d)));
 }
 
+async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | null> {
+  const zeroCodeSettingLocalStorageKey = 'ffc_zcs';
+  try {
+    const response = await fetch(`${_baseUrl}/api/zero-code/${envSecret}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+        }
+    });
+
+    // if (!response.ok) {
+    //   throw new Error(`An error has occured: ${response.status}`);
+    // }
+
+    const result = await response.text();
+
+    // if (!!result['code'] && result['code'] === 'Error') {
+    //   return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
+    // }
+
+    localStorage.setItem(zeroCodeSettingLocalStorageKey, result);
+    return JSON.parse(result);
+  } catch(error) {
+    console.log(error);
+    return localStorage.getItem(zeroCodeSettingLocalStorageKey) === null ? null : JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string);
+  }
+}
+
+async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[]) {
+  zeroCodeSettings?.forEach(zeroCodeSetting => {
+    const urls = zeroCodeSetting.items?.map(it => it.url);
+
+    if (!!urls && urls.find(u => location.href.includes(u))) {
+      const result = FFCJsClient.variation(zeroCodeSetting.featureFlagKey, '__');
+
+      zeroCodeSetting.items?.forEach(it => {
+        if (it.variationValue !== result) {
+          let nodes = document.querySelectorAll(it.cssSelector) as NodeListOf<HTMLElement>;
+          nodes.forEach(node => {
+              node.remove();
+          });
+        }
+        else {
+            let nodes = document.querySelectorAll(it.cssSelector) as NodeListOf<HTMLElement>;
+            nodes.forEach(node => {
+                if (node.style.display == 'none')
+                    node.style.display = 'block';
+            });
+        }
+      });
+    }
+  });
+}
+
+async function doZeroCodeSettings(envSecret: string) {
+  const zeroCodeSettings = await getZeroCodeSettings(envSecret);
+  if (zeroCodeSettings !== null) {
+    zeroCodeSettingsCheckVariation(zeroCodeSettings);
+
+    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
+      var callback = function (mutationsList) {
+          if (mutationsList && mutationsList.length > 0) {
+            zeroCodeSettingsCheckVariation(zeroCodeSettings);
+          }
+      };
+      (new MutationObserver(callback))
+          .observe(document.body, { attributes: true, childList: true, subtree: true });
+  }
+}
+
 export const FFCJsClient : IFFCJsClient = {
 
   async trackPageViewsAndClicks () {    
@@ -153,6 +191,8 @@ export const FFCJsClient : IFFCJsClient = {
     _baseUrl = option?.baseUrl || _baseUrl;
     _appType = option?.appType || _appType;
     _throttleWait = option?.throttleWait || _throttleWait;
+
+    doZeroCodeSettings(_environmentSecret);
 
     if (option?.shouldTrackPageViewsAndClicks) {
       this.trackPageViewsAndClicks();
