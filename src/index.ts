@@ -28,6 +28,7 @@ export interface IFFCCustomEvent {
   route?: string,
   appType?: string,
   eventName: string,
+  numericValue?: number,
   customizedProperties?: IFFCCustomizedProperty[],
   user?: IFFCUser
 }
@@ -96,6 +97,7 @@ function getTrackPayloadStr(data: IFFCCustomEvent[]): string {
   return JSON.stringify(data.map(d => Object.assign({}, {
     secret: _environmentSecret,
     route: location.pathname,
+    numericValue: 1,
     timeStamp: Date.now(),
     appType: _appType,
     user: {

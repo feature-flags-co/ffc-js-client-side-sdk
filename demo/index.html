@@ -94,7 +94,8 @@
 
                 let rt = await FFCJsClient.trackCustomEventAsync([
                     {
-                        eventName: "开始使用点击事件"
+                        eventName: "开始使用点击事件",
+                        numericValue: 1 // 可选参数，默认值为1
                     }
                 ]);
                 if (rt == true)
