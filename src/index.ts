@@ -102,7 +102,7 @@ async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | nul
     return JSON.parse(result);
   } catch(error) {
     console.log(error);
-    return localStorage.getItem(zeroCodeSettingLocalStorageKey) === null ? null : JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string);
+    return !!localStorage.getItem(zeroCodeSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string) : null;
   }
 }
 
