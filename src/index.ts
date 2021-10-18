@@ -189,12 +189,14 @@ async function getActiveExperimentMetricSettings(envSecret: string): Promise<IEx
 /********************************experiment metric setting *************************************/
 export const FFCJsClient : IFFCJsClient = {
   async trackPageViewsAndClicks (envSecret: string) {
+    const self = this;
+
     const exptMetricSettings = await getActiveExperimentMetricSettings(envSecret);
     const pageViewSetting = exptMetricSettings
       .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1)
 
     if (!!pageViewSetting) {
-      const self = this;
+      
       history.pushState = ( f => function pushState(this: any){
         const argumentsTyped: any = arguments;
         var ret = f.apply(self, argumentsTyped);
@@ -225,11 +227,34 @@ export const FFCJsClient : IFFCJsClient = {
       });
 
       const data = [{
+        type: 'PageView',
         route: window.location.href,
         eventName: pageViewSetting.eventName
       }];
 
       self.trackAsync(data);
+    }
+
+    const clickSettings = exptMetricSettings
+      .filter(em => em.eventType === EventType.Click && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+    
+    if (!!clickSettings && clickSettings.length > 0) {
+      clickSettings.forEach(s => {
+        let nodes = document.querySelectorAll(s.elementTargets) as NodeListOf<HTMLElement>;
+        nodes?.forEach(node => {
+          ((node, s) => {
+            node.addEventListener('click', (event) => {
+              const data = [{
+                type: 'Click',
+                route: window.location.href,
+                eventName: s.eventName
+              }];
+        
+              self.trackAsync(data);
+            })
+          })(node, s);
+        })
+      })
     }
   },
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
