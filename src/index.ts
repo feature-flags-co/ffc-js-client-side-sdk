@@ -108,12 +108,12 @@ async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | nul
 
 async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[]) {
   zeroCodeSettings?.forEach(zeroCodeSetting => {
-    const urls = zeroCodeSetting.items?.map(it => it.url);
+    const effectiveItems = zeroCodeSetting.items?.filter(it => location.href.includes(it.url));
 
-    if (!!urls && urls.find(u => location.href.includes(u))) {
+    if (!!effectiveItems && effectiveItems.length > 0) {
       const result = FFCJsClient.variation(zeroCodeSetting.featureFlagKey, '__');
 
-      zeroCodeSetting.items?.forEach(it => {
+      effectiveItems?.forEach(it => {
         if (it.variationValue !== result) {
           let nodes = document.querySelectorAll(it.cssSelector) as NodeListOf<HTMLElement>;
           nodes.forEach(node => {
