@@ -1,4 +1,4 @@
-import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode } from "./types";
+import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType } from "./types";
 
 declare global {
   interface Window {
@@ -77,7 +77,23 @@ function getTrackPayloadStr(data: IFFCCustomEvent[]): string {
   }, d)));
 }
 
-async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | null> {
+// test if the current page url mathch the given url
+function isUrlMatch(matchType: UrlMatchType, url: string): boolean {
+  const current_page_url = window.location.href;
+  if (url === null || url === undefined || url === '') {
+    return true;
+  }
+  
+  switch(matchType){
+    case UrlMatchType.Substring:
+      return current_page_url.includes(url);
+    default:
+      return false;
+  }
+}
+
+/********************************Zero code setting *************************************/
+async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | []> {
   const zeroCodeSettingLocalStorageKey = 'ffc_zcs';
   try {
     const response = await fetch(`${_baseUrl}/api/zero-code/${envSecret}`, {
@@ -102,13 +118,13 @@ async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | nul
     return JSON.parse(result);
   } catch(error) {
     console.log(error);
-    return !!localStorage.getItem(zeroCodeSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string) : null;
+    return !!localStorage.getItem(zeroCodeSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string) : [];
   }
 }
 
 async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[]) {
   zeroCodeSettings?.forEach(zeroCodeSetting => {
-    const effectiveItems = zeroCodeSetting.items?.filter(it => location.href.includes(it.url));
+    const effectiveItems = zeroCodeSetting.items?.filter(it => isUrlMatch(UrlMatchType.Substring, it.url));
 
     if (!!effectiveItems && effectiveItems.length > 0) {
       const result = FFCJsClient.variation(zeroCodeSetting.featureFlagKey, '__');
@@ -147,40 +163,74 @@ async function doZeroCodeSettings(envSecret: string) {
           .observe(document.body, { attributes: true, childList: true, subtree: true });
   }
 }
-
-export const FFCJsClient : IFFCJsClient = {
-
-  async trackPageViewsAndClicks () {    
-    const self = this;
-    history.pushState = ( f => function pushState(this: any){
-      const argumentsTyped: any = arguments;
-      var ret = f.apply(this, argumentsTyped);
-      window.dispatchEvent(new Event('pushstate'));
-      window.dispatchEvent(new Event('locationchange'));
-      return ret;
-    })(history.pushState);
-    
-    history.replaceState = ( f => function replaceState(this: any){
-      const argumentsTyped: any = arguments;
-      var ret = f.apply(this, argumentsTyped);
-      window.dispatchEvent(new Event('replacestate'));
-      window.dispatchEvent(new Event('locationchange'));
-      return ret;
-    })(history.replaceState);
-    
-    window.addEventListener('popstate',()=>{
-      window.dispatchEvent(new Event('locationchange'))
+/********************************Zero code setting *************************************/
+/********************************experiment metric setting *************************************/
+async function getActiveExperimentMetricSettings(envSecret: string): Promise<IExptMetricSetting[] | []> {
+  const exptMetricSettingLocalStorageKey = 'ffc_expt_metric_';
+  try {
+    const response = await fetch(`${_baseUrl}/api/experiments/${envSecret}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+        }
     });
+
+    const result = await response.text();
+
+    localStorage.setItem(exptMetricSettingLocalStorageKey, result);
+    return JSON.parse(result);
+  } catch(error) {
+    console.log(error);
+    return !!localStorage.getItem(exptMetricSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(exptMetricSettingLocalStorageKey) as string) : [];
+  }
+}
+
+/********************************experiment metric setting *************************************/
+export const FFCJsClient : IFFCJsClient = {
+  async trackPageViewsAndClicks (envSecret: string) {
+    const exptMetricSettings = await getActiveExperimentMetricSettings(envSecret);
+    const pageViewSetting = exptMetricSettings
+      .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1)
+
+    if (!!pageViewSetting) {
+      const self = this;
+      history.pushState = ( f => function pushState(this: any){
+        const argumentsTyped: any = arguments;
+        var ret = f.apply(self, argumentsTyped);
+        window.dispatchEvent(new Event('pushstate'));
+        window.dispatchEvent(new Event('locationchange'));
+        return ret;
+      })(history.pushState);
       
-    window.addEventListener("locationchange", function () {
-      let current_page_name = window.location.href;
+      history.replaceState = ( f => function replaceState(self: any){
+        const argumentsTyped: any = arguments;
+        var ret = f.apply(self, argumentsTyped);
+        window.dispatchEvent(new Event('replacestate'));
+        window.dispatchEvent(new Event('locationchange'));
+        return ret;
+      })(history.replaceState);
+      
+      window.addEventListener('popstate',()=>{
+        window.dispatchEvent(new Event('locationchange'))
+      });
+        
+      window.addEventListener("locationchange", function () {
+        const data = [{
+          route: window.location.href,
+          eventName: pageViewSetting.eventName
+        }];
+  
+        self.trackAsync(data);
+      });
+
       const data = [{
         route: window.location.href,
-        eventName: 'pageview'
+        eventName: pageViewSetting.eventName
       }];
 
       self.trackAsync(data);
-    });
+    }
   },
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     _environmentSecret = environmentSecret;
@@ -193,10 +243,7 @@ export const FFCJsClient : IFFCJsClient = {
     _throttleWait = option?.throttleWait || _throttleWait;
 
     doZeroCodeSettings(_environmentSecret);
-
-    if (option?.shouldTrackPageViewsAndClicks) {
-      this.trackPageViewsAndClicks();
-    }
+    this.trackPageViewsAndClicks(_environmentSecret);
   },
   initUserInfo (user) {
     if (!!user) {

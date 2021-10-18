@@ -12,7 +12,7 @@ export interface IFFCUser {
   }
   
   export interface IFFCJsClient {
-    trackPageViewsAndClicks: () => void,
+    trackPageViewsAndClicks: (envSecret: string) => void,
     initialize: (environmentSecret: string, user?: IFFCUser, option?: IOption) => void,
     initUserInfo: (user: IFFCUser) => void,
     trackCustomEventAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
@@ -53,4 +53,26 @@ export interface IFFCUser {
     cssSelector: string,
     variationValue: string,
     url: string
+  }
+
+  export enum EventType {
+    Custom = 1,
+    PageView = 2,
+    Click = 3
+  }
+
+  export enum UrlMatchType {
+    Substring = 1
+  }
+  
+  export interface ITargetUrl {
+    matchType: UrlMatchType,
+    url: string
+  }
+
+  export interface IExptMetricSetting {
+    eventName: string,
+    eventType: EventType,
+    elementTargets: string,
+    targetUrls: ITargetUrl[]
   }
