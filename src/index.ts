@@ -19,25 +19,53 @@ let _user: IFFCUser = {
 let _environmentSecret = '';
 let _baseUrl = 'https://api.feature-flags.co';
 let _appType = 'Javascript';
-let _throttleWait: number = 5000; // millionseconds
+let _throttleWait: number = 5 * 60000; // millionseconds
 
 // a simplified throttle function, if more options are needed, go to underscore or lodash
 // call back should be a function
-// current function throttle with the wait time, the same function will be called only once within the time window
+// current function throttle with the wait time and the current url, the same function will be called only once within the time window
 function throttle (callback: any): any {
   let waiting = false; 
   let result = null;
   let priviousFootprint: string | null = null;
-  
+  let referer: string;
+
   let getFootprint = (args: any): string => JSON.stringify(args);
 
   return function () {
     let footprint = getFootprint(arguments);
         
-    if (!waiting || footprint !== priviousFootprint) {    
+    if (!waiting || footprint !== priviousFootprint || location.pathname != referer) {
       waiting = true;
       priviousFootprint = footprint;
+      referer = location.pathname;
       result = callback.apply(null, arguments);
+      
+      setTimeout(function () {
+          waiting = false;
+      }, _throttleWait);
+    }
+
+    return result;
+  }
+}
+
+function throttleAsync (callback: any): any {
+  let waiting = false; 
+  let result = null;
+  let priviousFootprint: string | null = null;
+  let referer: string;
+
+  let getFootprint = (args: any): string => JSON.stringify(args);
+
+  return async function (...args) {
+    let footprint = getFootprint(args);
+        
+    if (!waiting || footprint !== priviousFootprint || location.pathname != referer) {
+      waiting = true;
+      priviousFootprint = footprint;
+      referer = location.pathname;
+      result = await callback.apply(null, args);
       
       setTimeout(function () {
           waiting = false;
@@ -124,7 +152,7 @@ async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | []>
 
 const ffc_special_value = '___071218__';
 
-async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[]) {
+async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[], observer: MutationObserver) {
   for(let zeroCodeSetting of zeroCodeSettings) {
     const effectiveItems = zeroCodeSetting.items?.filter(it => isUrlMatch(UrlMatchType.Substring, it.url));
 
@@ -132,6 +160,8 @@ async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[]) {
       const result = await FFCJsClient.variationAsync(zeroCodeSetting.featureFlagKey, ffc_special_value);
 
       if (result !== ffc_special_value) {
+        observer.disconnect();
+
         effectiveItems?.forEach(it => {
           const cssSelector = `${it.cssSelector?.trim()}:not(.${ffc_special_value})`;
           if (it.variationValue !== result) {
@@ -159,6 +189,8 @@ async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[]) {
             });
           }
         });
+
+        observer.observe(document.body, { attributes: true, childList: true, subtree: true });
       }
     }
   }
@@ -167,15 +199,18 @@ async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[]) {
 async function doZeroCodeSettings(envSecret: string) {
   let zeroCodeSettings = await getZeroCodeSettings(envSecret);
   if (!!zeroCodeSettings) {
-    await zeroCodeSettingsCheckVariation(zeroCodeSettings);
     var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
-    var callback = function (mutationsList) {
+
+    var callback = function (mutationsList, observer) {
+      //const list = mutationsList.filter(m => m.type !== 'attributes' || m.attributeName !== 'class' || )
       if (mutationsList && mutationsList.length > 0) {
-        zeroCodeSettingsCheckVariation(zeroCodeSettings);
+        zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
       }
     };
+
     const observer = new MutationObserver(callback);
-    observer.observe(document.body, { attributes: false, childList: true, subtree: true });
+    await zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
+    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
   }
 }
 /********************************Zero code setting *************************************/
@@ -343,8 +378,7 @@ export const FFCJsClient : IFFCJsClient = {
       return false;
     }
   },
-  variationAsync: async (featureFlagKey: string, defaultResult?: string) => {
-    return await throttle(async (featureFlagKey: string, defaultResult?: string): Promise<string> => {
+  variationAsync: throttleAsync(async (featureFlagKey: string, defaultResult?: string): Promise<string> => {
       const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
     
       if (defaultResult === undefined || defaultResult === null) {
@@ -378,8 +412,7 @@ export const FFCJsClient : IFFCJsClient = {
         console.log(error);
         return localStorage.getItem(ffcKey) === null ? defaultResult : localStorage.getItem(ffcKey) as string;
       }
-    })(featureFlagKey, defaultResult);
-  },
+    }),
   variation: throttle((featureFlagKey: string, defaultResult?: string): string => {
     const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
 
