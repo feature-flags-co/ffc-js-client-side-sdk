@@ -191,41 +191,31 @@ export const FFCJsClient : IFFCJsClient = {
   async trackPageViewsAndClicks (envSecret: string) {
     const self = this;
 
+    history.pushState = ( f => function pushState(this: any){
+      const argumentsTyped: any = arguments;
+      var ret = f.apply(this, argumentsTyped);
+      window.dispatchEvent(new Event('pushstate'));
+      window.dispatchEvent(new Event('locationchange'));
+      return ret;
+    })(history.pushState);
+    
+    history.replaceState = ( f => function replaceState(this: any){
+      const argumentsTyped: any = arguments;
+      var ret = f.apply(this, argumentsTyped);
+      window.dispatchEvent(new Event('replacestate'));
+      window.dispatchEvent(new Event('locationchange'));
+      return ret;
+    })(history.replaceState);
+    
+    window.addEventListener('popstate',()=>{
+      window.dispatchEvent(new Event('locationchange'))
+    });
+
     const exptMetricSettings = await getActiveExperimentMetricSettings(envSecret);
     const pageViewSetting = exptMetricSettings
-      .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1)
+      .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
 
     if (!!pageViewSetting) {
-      
-      history.pushState = ( f => function pushState(this: any){
-        const argumentsTyped: any = arguments;
-        var ret = f.apply(self, argumentsTyped);
-        window.dispatchEvent(new Event('pushstate'));
-        window.dispatchEvent(new Event('locationchange'));
-        return ret;
-      })(history.pushState);
-      
-      history.replaceState = ( f => function replaceState(self: any){
-        const argumentsTyped: any = arguments;
-        var ret = f.apply(self, argumentsTyped);
-        window.dispatchEvent(new Event('replacestate'));
-        window.dispatchEvent(new Event('locationchange'));
-        return ret;
-      })(history.replaceState);
-      
-      window.addEventListener('popstate',()=>{
-        window.dispatchEvent(new Event('locationchange'))
-      });
-        
-      window.addEventListener("locationchange", function () {
-        const data = [{
-          route: window.location.href,
-          eventName: pageViewSetting.eventName
-        }];
-  
-        self.trackAsync(data);
-      });
-
       const data = [{
         type: 'PageView',
         route: window.location.href,
@@ -235,27 +225,38 @@ export const FFCJsClient : IFFCJsClient = {
       self.trackAsync(data);
     }
 
-    const clickSettings = exptMetricSettings
-      .filter(em => em.eventType === EventType.Click && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+    window.addEventListener("locationchange", function () {
+      // page view
+      const pageViewSetting = exptMetricSettings
+      .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+
+      if (!!pageViewSetting) {
+        const data = [{
+          route: window.location.href,
+          eventName: pageViewSetting.eventName
+        }];
+  
+        self.trackAsync(data);
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      const clickSetting = exptMetricSettings
+      .find(em => em.eventType === EventType.Click && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+
+      if (!!clickSetting) {
+        const target = e.target as Element;
+        if (target?.closest(clickSetting.elementTargets)) {
+          const data = [{
+            type: 'Click',
+            route: window.location.href,
+            eventName: clickSetting.eventName
+          }];
     
-    if (!!clickSettings && clickSettings.length > 0) {
-      clickSettings.forEach(s => {
-        let nodes = document.querySelectorAll(s.elementTargets) as NodeListOf<HTMLElement>;
-        nodes?.forEach(node => {
-          ((node, s) => {
-            node.addEventListener('click', (event) => {
-              const data = [{
-                type: 'Click',
-                route: window.location.href,
-                eventName: s.eventName
-              }];
-        
-              self.trackAsync(data);
-            })
-          })(node, s);
-        })
-      })
-    }
+          self.trackAsync(data);
+        }
+      }
+    });
   },
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     _environmentSecret = environmentSecret;
