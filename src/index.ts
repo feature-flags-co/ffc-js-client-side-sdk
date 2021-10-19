@@ -122,45 +122,60 @@ async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | []>
   }
 }
 
+const ffc_special_value = '___071218__';
+
 async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[]) {
-  zeroCodeSettings?.forEach(zeroCodeSetting => {
+  for(let zeroCodeSetting of zeroCodeSettings) {
     const effectiveItems = zeroCodeSetting.items?.filter(it => isUrlMatch(UrlMatchType.Substring, it.url));
 
     if (!!effectiveItems && effectiveItems.length > 0) {
-      const result = FFCJsClient.variation(zeroCodeSetting.featureFlagKey, '__');
+      const result = await FFCJsClient.variationAsync(zeroCodeSetting.featureFlagKey, ffc_special_value);
 
-      effectiveItems?.forEach(it => {
-        if (it.variationValue !== result) {
-          let nodes = document.querySelectorAll(it.cssSelector) as NodeListOf<HTMLElement>;
-          nodes.forEach(node => {
-              node.remove();
-          });
-        }
-        else {
-            let nodes = document.querySelectorAll(it.cssSelector) as NodeListOf<HTMLElement>;
+      if (result !== ffc_special_value) {
+        effectiveItems?.forEach(it => {
+          const cssSelector = `${it.cssSelector?.trim()}:not(.${ffc_special_value})`;
+          if (it.variationValue !== result) {
+            let nodes = document.querySelectorAll(cssSelector) as NodeListOf<HTMLElement>;
+            nodes.forEach(node => {
+                node.remove();
+            });
+          }
+          else {
+            let nodes = document.querySelectorAll(cssSelector) as NodeListOf<HTMLElement>;
             nodes.forEach(node => {
                 if (node.style.display == 'none')
                     node.style.display = 'block';
             });
-        }
-      });
+          }
+
+          const nthChildRegex = /(\s*:\s*nth-child\(\s*[0-9]+\s*\)\s*)$/;
+          const matches = it.cssSelector.match(nthChildRegex);
+          
+          if (matches) {
+            let selector = it.cssSelector.substring(0, matches.index as number);
+            let nodes = document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
+            nodes.forEach(node => {
+              node.classList.add(ffc_special_value);
+            });
+          }
+        });
+      }
     }
-  });
+  }
 }
 
 async function doZeroCodeSettings(envSecret: string) {
-  const zeroCodeSettings = await getZeroCodeSettings(envSecret);
-  if (zeroCodeSettings !== null) {
-    zeroCodeSettingsCheckVariation(zeroCodeSettings);
-
+  let zeroCodeSettings = await getZeroCodeSettings(envSecret);
+  if (!!zeroCodeSettings) {
+    await zeroCodeSettingsCheckVariation(zeroCodeSettings);
     var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
-      var callback = function (mutationsList) {
-          if (mutationsList && mutationsList.length > 0) {
-            zeroCodeSettingsCheckVariation(zeroCodeSettings);
-          }
-      };
-      (new MutationObserver(callback))
-          .observe(document.body, { attributes: true, childList: true, subtree: true });
+    var callback = function (mutationsList) {
+      if (mutationsList && mutationsList.length > 0) {
+        zeroCodeSettingsCheckVariation(zeroCodeSettings);
+      }
+    };
+    const observer = new MutationObserver(callback);
+    observer.observe(document.body, { attributes: false, childList: true, subtree: true });
   }
 }
 /********************************Zero code setting *************************************/
