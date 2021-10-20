@@ -24,57 +24,55 @@ let _throttleWait: number = 5 * 60000; // millionseconds
 // a simplified throttle function, if more options are needed, go to underscore or lodash
 // call back should be a function
 // current function throttle with the wait time and the current url, the same function will be called only once within the time window
+const API_CALL_RESULTS : {[key: string]: string} = {};
+const FOOT_PRINTS: string[] = [];
 function throttle (callback: any): any {
   let waiting = false; 
-  let result = null;
-  let priviousFootprints: string[] = [];
 
   let getFootprint = (args: any): string => JSON.stringify(args);
 
   return function () {
-    let footprint = getFootprint(arguments);
-        
-    if (!waiting || !priviousFootprints.find(f => f === footprint)) {
+    const footprint = getFootprint(arguments);
+    const idx = FOOT_PRINTS.findIndex(f => f === footprint);
+    if (!waiting || idx === -1) {
       waiting = true;
-      if (!priviousFootprints.find(f => f === footprint)) {
-        priviousFootprints = [...priviousFootprints, footprint];
+      if (idx === -1) {
+        FOOT_PRINTS.push(footprint);
       }
 
-      result = callback.apply(null, arguments);
+      API_CALL_RESULTS[footprint] = callback.apply(null, arguments);
       
       setTimeout(function () {
           waiting = false;
       }, _throttleWait);
     }
 
-    return result;
+    return API_CALL_RESULTS[footprint];
   }
 }
 
 function throttleAsync (callback: any): any {
   let waiting = false; 
-  let result = null;
-  let priviousFootprints: string[] = [];
 
   let getFootprint = (args: any): string => JSON.stringify(args);
 
   return async function (...args) {
-    let footprint = getFootprint(args);
-        
-    if (!waiting || !priviousFootprints.find(f => f === footprint)) {
+    const footprint = getFootprint(args);
+    const idx = FOOT_PRINTS.findIndex(f => f === footprint);
+    if (!waiting || idx === -1) {
       waiting = true;
-      if (!priviousFootprints.find(f => f === footprint)) {
-        priviousFootprints = [...priviousFootprints, footprint];
+      if (idx === -1) {
+        FOOT_PRINTS.push(footprint);
       }
-
-      result = await callback.apply(null, args);
+      
+      API_CALL_RESULTS[footprint] = await callback.apply(null, args);
       
       setTimeout(function () {
           waiting = false;
       }, _throttleWait);
     }
 
-    return result;
+    return API_CALL_RESULTS[footprint];
   }
 }
 
@@ -169,8 +167,10 @@ function applyRules(items: ICssSelectorItem[], ffResult: string) {
       const cssSelectors = (itms as ICssSelectorItem[]).map(it => it.cssSelector).join(',');
       let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
       nodes.forEach(node => {
-        node.classList.add(ffc_special_value);
-        Object.assign(node.style, {'box-sizing': 'border-box', position: 'absolute', left: '-9999999999px', top: '-9999999999px' });
+        const { position, left, top } = node.style;
+        const style = { position, left, top };
+        node.setAttribute(`data-ffc-${ffc_special_value}`, JSON.stringify(style));
+        Object.assign(node.style, { position: 'absolute', left: '-9999999999px', top: '-9999999999px' });
       });
     }
   }
@@ -183,8 +183,9 @@ function applyRules(items: ICssSelectorItem[], ffResult: string) {
       style['display'] = 'block';
     }
 
-    if (node.classList.contains(ffc_special_value)) {
-      Object.assign(style, {'box-sizing': 'border-box', position: '', left: '', top: '' });
+    const rawStyle = node.getAttribute(`data-ffc-${ffc_special_value}`);
+    if (rawStyle !== null && rawStyle !== '') {
+      Object.assign(style, JSON.parse(rawStyle));
     }
 
     Object.assign(node.style, style);
