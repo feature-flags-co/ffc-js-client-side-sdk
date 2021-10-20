@@ -27,18 +27,19 @@ let _throttleWait: number = 5 * 60000; // millionseconds
 function throttle (callback: any): any {
   let waiting = false; 
   let result = null;
-  let priviousFootprint: string | null = null;
-  let referer: string;
+  let priviousFootprints: string[] = [];
 
   let getFootprint = (args: any): string => JSON.stringify(args);
 
   return function () {
     let footprint = getFootprint(arguments);
         
-    if (!waiting || footprint !== priviousFootprint || location.pathname != referer) {
+    if (!waiting || !priviousFootprints.find(f => f === footprint)) {
       waiting = true;
-      priviousFootprint = footprint;
-      referer = location.pathname;
+      if (!priviousFootprints.find(f => f === footprint)) {
+        priviousFootprints = [...priviousFootprints, footprint];
+      }
+
       result = callback.apply(null, arguments);
       
       setTimeout(function () {
@@ -53,18 +54,19 @@ function throttle (callback: any): any {
 function throttleAsync (callback: any): any {
   let waiting = false; 
   let result = null;
-  let priviousFootprint: string | null = null;
-  let referer: string;
+  let priviousFootprints: string[] = [];
 
   let getFootprint = (args: any): string => JSON.stringify(args);
 
   return async function (...args) {
     let footprint = getFootprint(args);
         
-    if (!waiting || footprint !== priviousFootprint || location.pathname != referer) {
+    if (!waiting || !priviousFootprints.find(f => f === footprint)) {
       waiting = true;
-      priviousFootprint = footprint;
-      referer = location.pathname;
+      if (!priviousFootprints.find(f => f === footprint)) {
+        priviousFootprints = [...priviousFootprints, footprint];
+      }
+
       result = await callback.apply(null, args);
       
       setTimeout(function () {

@@ -1,6 +1,6 @@
 {
   "name": "ffc-js-client-sdk",
-  "version": "1.4.25",
+  "version": "1.4.26",
   "description": "https://github.com/feature-flags-co/ffc-js-client-sdk",
   "main": "index.js",
   "scripts": {
