@@ -1,4 +1,4 @@
-import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType } from "./types";
+import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType, ICssSelectorItem } from "./types";
 
 declare global {
   interface Window {
@@ -152,6 +152,43 @@ async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | []>
 
 const ffc_special_value = '___071218__';
 
+function groupBy (xs: any, key: string): {[key: string] : any} {
+  return xs.reduce(function(rv, x) {
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
+};
+
+function applyRules(items: ICssSelectorItem[], ffResult: string) {
+  const groupedItems: { [key: string]: ICssSelectorItem[] } = groupBy(items, 'variationValue');
+  
+  for (let [variationValue, itms] of Object.entries(groupedItems)) {
+    if (variationValue !== ffResult) {
+      const cssSelectors = (itms as ICssSelectorItem[]).map(it => it.cssSelector).join(',');
+      let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
+      nodes.forEach(node => {
+        node.classList.add(ffc_special_value);
+        Object.assign(node.style, {'box-sizing': 'border-box', position: 'absolute', left: '-9999999999px', top: '-9999999999px' });
+      });
+    }
+  }
+
+  const cssSelectors = groupedItems[ffResult]?.map(it => it.cssSelector).join(',');
+  let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
+  nodes.forEach(node => {
+    const style = {};
+    if (node.style.display === 'none') {
+      style['display'] = 'block';
+    }
+
+    if (node.classList.contains(ffc_special_value)) {
+      Object.assign(style, {'box-sizing': 'border-box', position: '', left: '', top: '' });
+    }
+
+    Object.assign(node.style, style);
+  });
+}
+
 async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[], observer: MutationObserver) {
   for(let zeroCodeSetting of zeroCodeSettings) {
     const effectiveItems = zeroCodeSetting.items?.filter(it => isUrlMatch(UrlMatchType.Substring, it.url));
@@ -161,35 +198,7 @@ async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[], obs
 
       if (result !== ffc_special_value) {
         observer.disconnect();
-
-        effectiveItems?.forEach(it => {
-          const cssSelector = `${it.cssSelector?.trim()}:not(.${ffc_special_value})`;
-          if (it.variationValue !== result) {
-            let nodes = document.querySelectorAll(cssSelector) as NodeListOf<HTMLElement>;
-            nodes.forEach(node => {
-                node.remove();
-            });
-          }
-          else {
-            let nodes = document.querySelectorAll(cssSelector) as NodeListOf<HTMLElement>;
-            nodes.forEach(node => {
-                if (node.style.display == 'none')
-                    node.style.display = 'block';
-            });
-          }
-
-          const nthChildRegex = /(\s*:\s*nth-child\(\s*[0-9]+\s*\)\s*)$/;
-          const matches = it.cssSelector.match(nthChildRegex);
-          
-          if (matches) {
-            let selector = it.cssSelector.substring(0, matches.index as number);
-            let nodes = document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
-            nodes.forEach(node => {
-              node.classList.add(ffc_special_value);
-            });
-          }
-        });
-
+        applyRules(effectiveItems, result);
         observer.observe(document.body, { attributes: true, childList: true, subtree: true });
       }
     }
