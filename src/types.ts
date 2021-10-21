@@ -12,7 +12,6 @@ export interface IFFCUser {
   }
   
   export interface IFFCJsClient {
-    trackPageViewsAndClicks: (envSecret: string) => void,
     initialize: (environmentSecret: string, user?: IFFCUser, option?: IOption) => void,
     initUserInfo: (user: IFFCUser) => void,
     trackCustomEventAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,

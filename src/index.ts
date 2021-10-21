@@ -120,7 +120,7 @@ function isUrlMatch(matchType: UrlMatchType, url: string): boolean {
   }
 }
 
-/********************************Zero code setting *************************************/
+/******************************** Zero code setting start *************************************/
 async function getZeroCodeSettings(envSecret: string): Promise<IZeroCode[] | []> {
   const zeroCodeSettingLocalStorageKey = 'ffc_zcs';
   try {
@@ -210,36 +210,58 @@ async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[], obs
       const result = FFCJsClient.variation(zeroCodeSetting.featureFlagKey, ffc_special_value);
 
       if (result !== ffc_special_value) {
-        observer.disconnect();
         applyRules(effectiveItems, result);
-        observer.observe(document.body, { attributes: true, childList: true, subtree: true });
       }
     } else {
       if (zeroCodeSetting.items && zeroCodeSetting.items.length > 0) {
-        observer.disconnect();
         revertRules(zeroCodeSetting.items);
-        observer.observe(document.body, { attributes: true, childList: true, subtree: true });
       }
     }
   }
 }
+/******************************** Zero code setting end *************************************/
+/************************ Click start ******************************/
+function clickHandler(event) {
+  var target = event?.currentTarget as any;
+  const data = [{
+    type: 'Click',
+    route: window.location.href,
+    eventName: target.dataffceventname
+  }];
 
-async function doZeroCodeSettings(envSecret: string) {
-  let zeroCodeSettings = await getZeroCodeSettings(envSecret);
-  if (!!zeroCodeSettings) {
-    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
+  FFCJsClient.trackAsync(data);
+}
 
-    var callback = function (mutationsList, observer) {
-      //const list = mutationsList.filter(m => m.type !== 'attributes' || m.attributeName !== 'class' || )
-      if (mutationsList && mutationsList.length > 0) {
-        zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
-      }
-    };
+async function bindClickHandlers(exptMetricSettings: IExptMetricSetting[]) {
+  const clickSetting = exptMetricSettings
+  .find(em => em.eventType === EventType.Click && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
 
-    const observer = new MutationObserver(callback);
-    await zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
-    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+  if (!!clickSetting) {
+    const nodes = document.querySelectorAll(clickSetting.elementTargets);
+    nodes.forEach(node => {
+      node['dataffceventname'] = clickSetting.eventName;
+      node.removeEventListener('click', clickHandler);
+      node.addEventListener('click', clickHandler);
+    });
   }
+}
+
+/************************** Click end ******************************/ 
+async function trackZeroCodingAndClicks(zeroCodeSettings: IZeroCode[], exptMetricSettings: IExptMetricSetting[]) {
+  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
+
+  var callback = async function (mutationsList, observer) {
+    if (mutationsList && mutationsList.length > 0) {
+      observer.disconnect();
+      await bindClickHandlers(exptMetricSettings);
+      await zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
+      observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+    }
+  };
+
+  const observer = new MutationObserver(callback);
+  await zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
+  observer.observe(document.body, { attributes: true, childList: true, subtree: true });
 }
 /********************************Zero code setting *************************************/
 /********************************experiment metric setting *************************************/
@@ -265,77 +287,65 @@ async function getActiveExperimentMetricSettings(envSecret: string): Promise<IEx
 }
 
 /********************************experiment metric setting *************************************/
-export const FFCJsClient : IFFCJsClient = {
-  async trackPageViewsAndClicks (envSecret: string) {
-    const self = this;
 
-    history.pushState = ( f => function pushState(this: any){
-      const argumentsTyped: any = arguments;
-      var ret = f.apply(this, argumentsTyped);
-      window.dispatchEvent(new Event('pushstate'));
-      window.dispatchEvent(new Event('locationchange'));
-      return ret;
-    })(history.pushState);
-    
-    history.replaceState = ( f => function replaceState(this: any){
-      const argumentsTyped: any = arguments;
-      var ret = f.apply(this, argumentsTyped);
-      window.dispatchEvent(new Event('replacestate'));
-      window.dispatchEvent(new Event('locationchange'));
-      return ret;
-    })(history.replaceState);
-    
-    window.addEventListener('popstate',()=>{
-      window.dispatchEvent(new Event('locationchange'))
-    });
+async function trackPageViews (exptMetricSettings: IExptMetricSetting[]) {
+  history.pushState = ( f => function pushState(this: any){
+    const argumentsTyped: any = arguments;
+    var ret = f.apply(this, argumentsTyped);
+    window.dispatchEvent(new Event('pushstate'));
+    window.dispatchEvent(new Event('locationchange'));
+    return ret;
+  })(history.pushState);
+  
+  history.replaceState = ( f => function replaceState(this: any){
+    const argumentsTyped: any = arguments;
+    var ret = f.apply(this, argumentsTyped);
+    window.dispatchEvent(new Event('replacestate'));
+    window.dispatchEvent(new Event('locationchange'));
+    return ret;
+  })(history.replaceState);
+  
+  window.addEventListener('popstate',()=>{
+    window.dispatchEvent(new Event('locationchange'))
+  });
 
-    const exptMetricSettings = await getActiveExperimentMetricSettings(envSecret);
+  const pageViewSetting = exptMetricSettings
+    .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+
+  if (!!pageViewSetting) {
+    const data = [{
+      type: 'PageView',
+      route: window.location.href,
+      eventName: pageViewSetting.eventName
+    }];
+
+    FFCJsClient.trackAsync(data);
+  }
+
+  window.addEventListener("locationchange", function () {
     const pageViewSetting = exptMetricSettings
-      .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+    .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
 
     if (!!pageViewSetting) {
       const data = [{
-        type: 'PageView',
         route: window.location.href,
         eventName: pageViewSetting.eventName
       }];
 
-      self.trackAsync(data);
+      FFCJsClient.trackAsync(data);
     }
+  });
+}
 
-    window.addEventListener("locationchange", function () {
-      // page view
-      const pageViewSetting = exptMetricSettings
-      .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+async function initAutoTracking (envSecret: string) {
+  const exptMetricSettings = await getActiveExperimentMetricSettings(envSecret);
+  let zeroCodeSettings = await getZeroCodeSettings(envSecret);
 
-      if (!!pageViewSetting) {
-        const data = [{
-          route: window.location.href,
-          eventName: pageViewSetting.eventName
-        }];
-  
-        self.trackAsync(data);
-      }
-    });
+  await trackPageViews(exptMetricSettings);
+  await trackZeroCodingAndClicks(zeroCodeSettings, exptMetricSettings);
+}
 
-    document.addEventListener('click', function(e) {
-      const clickSetting = exptMetricSettings
-      .find(em => em.eventType === EventType.Click && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
-
-      if (!!clickSetting) {
-        const target = e.target as Element;
-        if (target?.closest(clickSetting.elementTargets)) {
-          const data = [{
-            type: 'Click',
-            route: window.location.href,
-            eventName: clickSetting.eventName
-          }];
-    
-          self.trackAsync(data);
-        }
-      }
-    });
-  },
+export const FFCJsClient : IFFCJsClient = {
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     _environmentSecret = environmentSecret;
     if (user) {
@@ -346,8 +356,7 @@ export const FFCJsClient : IFFCJsClient = {
     _appType = option?.appType || _appType;
     _throttleWait = option?.throttleWait || _throttleWait;
 
-    doZeroCodeSettings(_environmentSecret);
-    this.trackPageViewsAndClicks(_environmentSecret);
+    initAutoTracking(_environmentSecret);
   },
   initUserInfo (user) {
     if (!!user) {
