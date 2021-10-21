@@ -1,10 +1,10 @@
 {
   "name": "ffc-js-client-sdk",
-  "version": "1.4.28",
+  "version": "1.4.29",
   "description": "https://github.com/feature-flags-co/ffc-js-client-sdk",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf ./umd ./esm && tsc && webpack --mode production",
+    "build": "tsc && webpack --mode production",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",

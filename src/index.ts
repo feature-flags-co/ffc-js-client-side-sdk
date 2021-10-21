@@ -159,23 +159,8 @@ function groupBy (xs: any, key: string): {[key: string] : any} {
   }, {});
 };
 
-function applyRules(items: ICssSelectorItem[], ffResult: string) {
-  const groupedItems: { [key: string]: ICssSelectorItem[] } = groupBy(items, 'variationValue');
-  
-  for (let [variationValue, itms] of Object.entries(groupedItems)) {
-    if (variationValue !== ffResult) {
-      const cssSelectors = (itms as ICssSelectorItem[]).map(it => it.cssSelector).join(',');
-      let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
-      nodes.forEach(node => {
-        const { position, left, top } = node.style;
-        const style = { position, left, top };
-        node.setAttribute(`data-ffc-${ffc_special_value}`, JSON.stringify(style));
-        Object.assign(node.style, { position: 'absolute', left: '-9999999999px', top: '-9999999999px' });
-      });
-    }
-  }
-
-  const cssSelectors = groupedItems[ffResult]?.map(it => it.cssSelector).join(',');
+function revertRules (items: ICssSelectorItem[]) {
+  const cssSelectors = items.map(it => it.cssSelector).join(',');
   let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
   nodes.forEach(node => {
     const style = {};
@@ -185,23 +170,54 @@ function applyRules(items: ICssSelectorItem[], ffResult: string) {
 
     const rawStyle = node.getAttribute(`data-ffc-${ffc_special_value}`);
     if (rawStyle !== null && rawStyle !== '') {
-      Object.assign(style, JSON.parse(rawStyle));
+      Object.assign(style, JSON.parse(rawStyle)); 
     }
 
     Object.assign(node.style, style);
   });
 }
 
+function applyRules(items: ICssSelectorItem[], ffResult: string) {
+  const groupedItems: { [key: string]: ICssSelectorItem[] } = groupBy(items, 'variationValue');
+  
+  // hide items
+  for (let [variationValue, itms] of Object.entries(groupedItems)) {
+    if (variationValue !== ffResult) {
+      const cssSelectors = (itms as ICssSelectorItem[]).map(it => it.cssSelector).join(',');
+      let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
+      nodes.forEach(node => {
+        const { position, left, top } = node.style;
+        if (left !== '-99999px') {
+          const style = { position, left, top };
+          node.setAttribute(`data-ffc-${ffc_special_value}`, JSON.stringify(style));
+          Object.assign(node.style, { position: 'absolute', left: '-99999px', top: '-99999px' });
+        }
+      });
+    }
+  }
+
+  // show items (revert hiding)
+  if (groupedItems[ffResult] && groupedItems[ffResult].length > 0) {
+    revertRules(groupedItems[ffResult]);
+  }
+}
+
 async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[], observer: MutationObserver) {
   for(let zeroCodeSetting of zeroCodeSettings) {
     const effectiveItems = zeroCodeSetting.items?.filter(it => isUrlMatch(UrlMatchType.Substring, it.url));
-
+    
     if (!!effectiveItems && effectiveItems.length > 0) {
-      const result = await FFCJsClient.variationAsync(zeroCodeSetting.featureFlagKey, ffc_special_value);
+      const result = FFCJsClient.variation(zeroCodeSetting.featureFlagKey, ffc_special_value);
 
       if (result !== ffc_special_value) {
         observer.disconnect();
         applyRules(effectiveItems, result);
+        observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+      }
+    } else {
+      if (zeroCodeSetting.items && zeroCodeSetting.items.length > 0) {
+        observer.disconnect();
+        revertRules(zeroCodeSetting.items);
         observer.observe(document.body, { attributes: true, childList: true, subtree: true });
       }
     }
