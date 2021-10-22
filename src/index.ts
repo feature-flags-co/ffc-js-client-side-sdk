@@ -240,8 +240,8 @@ async function bindClickHandlers(exptMetricSettings: IExptMetricSetting[]) {
     const nodes = document.querySelectorAll(clickSetting.elementTargets);
     nodes.forEach(node => {
       node['dataffceventname'] = clickSetting.eventName;
-      node.removeEventListener('click', clickHandler, true);
-      node.addEventListener('click', clickHandler, true);
+      node.removeEventListener('click', clickHandler);
+      node.addEventListener('click', clickHandler);
     });
   }
 }
@@ -260,6 +260,7 @@ async function trackZeroCodingAndClicks(zeroCodeSettings: IZeroCode[], exptMetri
   };
 
   const observer = new MutationObserver(callback);
+  await bindClickHandlers(exptMetricSettings);
   await zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
   observer.observe(document.body, { attributes: true, childList: true, subtree: true });
 }
@@ -358,10 +359,11 @@ export const FFCJsClient : IFFCJsClient = {
     _appType = option?.appType || _appType;
     _throttleWait = option?.throttleWait || _throttleWait;
 
-    if (_user.key) {
-      _autoTrackingInited = true;
-      initAutoTracking(_environmentSecret);
-    }
+    initAutoTracking(_environmentSecret);
+    // if (_user.key) {
+    //   initAutoTracking(_environmentSecret);
+    //   _autoTrackingInited = true;
+    // }
   },
   initUserInfo (user) {
     if (!!user) {
@@ -369,6 +371,7 @@ export const FFCJsClient : IFFCJsClient = {
 
       if (!_autoTrackingInited) {
         initAutoTracking(_environmentSecret);
+        _autoTrackingInited = true;
       }
     }
   },
