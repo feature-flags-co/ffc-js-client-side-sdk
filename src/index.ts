@@ -29,7 +29,7 @@ const FOOT_PRINTS: string[] = [];
 function throttle (callback: any): any {
   let waiting = false; 
 
-  let getFootprint = (args: any): string => JSON.stringify(args);
+  let getFootprint = (args: any): string => _user.key + JSON.stringify(args);
 
   return function () {
     const footprint = getFootprint(arguments);
@@ -54,7 +54,7 @@ function throttle (callback: any): any {
 function throttleAsync (callback: any): any {
   let waiting = false; 
 
-  let getFootprint = (args: any): string => JSON.stringify(args);
+  let getFootprint = (args: any): string => _user.key + JSON.stringify(args);
 
   return async function (...args) {
     const footprint = getFootprint(args);
@@ -160,7 +160,7 @@ function groupBy (xs: any, key: string): {[key: string] : any} {
 };
 
 function revertRules (items: ICssSelectorItem[]) {
-  const cssSelectors = items.map(it => it.cssSelector).join(',');
+  const cssSelectors = items.map(it => it.cssSelector).filter((v, i, a) => a.indexOf(v) === i).join(','); // the filter function returns unique values
   let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
   nodes.forEach(node => {
     const style = {};
@@ -183,7 +183,7 @@ function applyRules(items: ICssSelectorItem[], ffResult: string) {
   // hide items
   for (let [variationValue, itms] of Object.entries(groupedItems)) {
     if (variationValue !== ffResult) {
-      const cssSelectors = (itms as ICssSelectorItem[]).map(it => it.cssSelector).join(',');
+      const cssSelectors = (itms as ICssSelectorItem[]).map(it => it.cssSelector).filter((v, i, a) => a.indexOf(v) === i).join(','); // the filter function returns unique values
       let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
       nodes.forEach(node => {
         const { position, left, top } = node.style;
@@ -240,8 +240,8 @@ async function bindClickHandlers(exptMetricSettings: IExptMetricSetting[]) {
     const nodes = document.querySelectorAll(clickSetting.elementTargets);
     nodes.forEach(node => {
       node['dataffceventname'] = clickSetting.eventName;
-      node.removeEventListener('click', clickHandler);
-      node.addEventListener('click', clickHandler);
+      node.removeEventListener('click', clickHandler, true);
+      node.addEventListener('click', clickHandler, true);
     });
   }
 }
@@ -345,6 +345,8 @@ async function initAutoTracking (envSecret: string) {
   await trackZeroCodingAndClicks(zeroCodeSettings, exptMetricSettings);
 }
 
+let _autoTrackingInited: boolean = false
+
 export const FFCJsClient : IFFCJsClient = {
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     _environmentSecret = environmentSecret;
@@ -356,11 +358,18 @@ export const FFCJsClient : IFFCJsClient = {
     _appType = option?.appType || _appType;
     _throttleWait = option?.throttleWait || _throttleWait;
 
-    initAutoTracking(_environmentSecret);
+    if (_user.key) {
+      _autoTrackingInited = true;
+      initAutoTracking(_environmentSecret);
+    }
   },
   initUserInfo (user) {
     if (!!user) {
       _user = Object.assign({}, _user, user);
+
+      if (!_autoTrackingInited) {
+        initAutoTracking(_environmentSecret);
+      }
     }
   },
   trackCustomEventAsync: async (data: IFFCCustomEvent[]) => {
