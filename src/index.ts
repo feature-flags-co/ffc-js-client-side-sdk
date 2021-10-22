@@ -26,9 +26,12 @@ let _throttleWait: number = 5 * 60000; // millionseconds
 // current function throttle with the wait time and the current url, the same function will be called only once within the time window
 const API_CALL_RESULTS : {[key: string]: string} = {};
 const FOOT_PRINTS: string[] = [];
-function throttle (callback: any): any {
+function throttle (callback: any, throttleWait?: number): any {
   let waiting = false; 
-
+  if (throttleWait === undefined) {
+    throttleWait = _throttleWait;
+  }
+  
   let getFootprint = (args: any): string => _user.key + JSON.stringify(args);
 
   return function () {
@@ -44,7 +47,7 @@ function throttle (callback: any): any {
       
       setTimeout(function () {
           waiting = false;
-      }, _throttleWait);
+      }, throttleWait);
     }
 
     return API_CALL_RESULTS[footprint];
@@ -320,7 +323,7 @@ async function trackPageViews (exptMetricSettings: IExptMetricSetting[]) {
       eventName: pageViewSetting.eventName
     }];
 
-    FFCJsClient.trackAsync(data);
+    FFCJsClient.track(data);
   }
 
   window.addEventListener("locationchange", function () {
@@ -333,7 +336,7 @@ async function trackPageViews (exptMetricSettings: IExptMetricSetting[]) {
         eventName: pageViewSetting.eventName
       }];
 
-      FFCJsClient.trackAsync(data);
+      FFCJsClient.track(data);
     }
   });
 }
@@ -359,11 +362,10 @@ export const FFCJsClient : IFFCJsClient = {
     _appType = option?.appType || _appType;
     _throttleWait = option?.throttleWait || _throttleWait;
 
-    initAutoTracking(_environmentSecret);
-    // if (_user.key) {
-    //   initAutoTracking(_environmentSecret);
-    //   _autoTrackingInited = true;
-    // }
+    if (_user.key) {
+      initAutoTracking(_environmentSecret);
+      _autoTrackingInited = true;
+    }
   },
   initUserInfo (user) {
     if (!!user) {
@@ -406,7 +408,7 @@ export const FFCJsClient : IFFCJsClient = {
       return false;
     }
   },
-  track: (data: IFFCCustomEvent[]): boolean => {
+  track: throttle((data: IFFCCustomEvent[]): boolean => {
     try {
       var postUrl = _baseUrl + '/ExperimentsDataReceiver/PushData';
 
@@ -426,7 +428,7 @@ export const FFCJsClient : IFFCJsClient = {
     } catch (err) {
       return false;
     }
-  },
+  }, 5000),
   variationAsync: throttleAsync(async (featureFlagKey: string, defaultResult?: string): Promise<string> => {
       const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
     
