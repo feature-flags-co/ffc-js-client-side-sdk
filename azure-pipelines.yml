@@ -3,17 +3,33 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-trigger:
-- main
+trigger: none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
+
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+  - checkout: self
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '14.x'
+    displayName: 'Install Node.js'
+  
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: |
+        cd '$(System.DefaultWorkingDirectory)'
+        
+        npm install
+        npm run build
+    displayName: 'npm install and build'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  - task: AzureFileCopy@4
+    inputs:
+      SourcePath: $(System.DefaultWorkingDirectory)/umd/index.min.js
+      azureSubscription: 'azure-china-devops'
+      Destination: 'AzureBlob'
+      storage: 'ffc0st0media0ce2'
+      ContainerName: 'ffc-js-sdk'
