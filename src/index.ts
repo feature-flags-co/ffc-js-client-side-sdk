@@ -1,4 +1,4 @@
-import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType, ICssSelectorItem } from "./types";
+import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType, ICssSelectorItem, FeatureFlagType } from "./types";
 
 declare global {
   interface Window {
@@ -79,7 +79,7 @@ function throttleAsync (callback: any): any {
   }
 }
 
-function getVariationPayloadStr(featureFlagKey: string): string {
+function getVariationPayloadStr(featureFlagKey: string, variationOptionId?: number): string {
   return JSON.stringify({
     featureFlagKeyName: featureFlagKey,
     environmentSecret: _environmentSecret,
@@ -87,7 +87,8 @@ function getVariationPayloadStr(featureFlagKey: string): string {
     ffUserEmail: _user.email,
     ffUserCountry: _user.country,
     ffUserKeyId: _user.key,
-    ffUserCustomizedProperties: _user.customizeProperties
+    ffUserCustomizedProperties: _user.customizeProperties,
+    variationOptionId
   });
 }
 
@@ -209,15 +210,25 @@ async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[], obs
   for(let zeroCodeSetting of zeroCodeSettings) {
     const effectiveItems = zeroCodeSetting.items?.filter(it => isUrlMatch(UrlMatchType.Substring, it.url));
     
-    if (!!effectiveItems && effectiveItems.length > 0) {
-      const result = FFCJsClient.variation(zeroCodeSetting.featureFlagKey, ffc_special_value);
-
-      if (result !== ffc_special_value) {
-        applyRules(effectiveItems, result);
+    if (zeroCodeSetting.featureFlagType === FeatureFlagType.Pretargeted) {
+      // 客户已经做好用户分流
+      for (let item of effectiveItems) {
+        let node = document.querySelector(item.cssSelector) as HTMLElement;
+        if (node !== null && node !== undefined) {
+          await FFCJsClient.sendUserVariationAsync(zeroCodeSetting.featureFlagKey, item.variationOptionId);
+        }
       }
     } else {
-      if (zeroCodeSetting.items && zeroCodeSetting.items.length > 0) {
-        revertRules(zeroCodeSetting.items);
+      if (!!effectiveItems && effectiveItems.length > 0) {
+        const result = FFCJsClient.variation(zeroCodeSetting.featureFlagKey, ffc_special_value);
+  
+        if (result !== ffc_special_value) {
+          applyRules(effectiveItems, result);
+        }
+      } else {
+        if (zeroCodeSetting.items && zeroCodeSetting.items.length > 0) {
+          revertRules(zeroCodeSetting.items);
+        }
       }
     }
   }
@@ -429,6 +440,31 @@ export const FFCJsClient : IFFCJsClient = {
       return false;
     }
   }, 5000),
+  sendUserVariationAsync: throttleAsync(async (featureFlagKey: string, variationOptionId: number): Promise<void> => {
+    if (variationOptionId === undefined || variationOptionId === null) {
+      return;
+    }
+    
+    try {
+      var postUrl = _baseUrl + '/Variation/SendUserVariation';
+  
+      const response = await fetch(postUrl, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+          },
+          body: getVariationPayloadStr(featureFlagKey, variationOptionId)
+      });
+  
+      if (!response.ok) {
+        throw new Error(`An error has occured: ${response.status}`);
+      }
+
+    } catch(error) {
+      console.log(error);
+    }
+  }),
   variationAsync: throttleAsync(async (featureFlagKey: string, defaultResult?: string): Promise<string> => {
       const ffcKey = `${FF_STORAGE_KEY_PREFIX}${featureFlagKey}`;
     
