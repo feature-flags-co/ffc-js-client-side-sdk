@@ -10,7 +10,7 @@
 
 ### 浏览器 
 ```
-<script src="../node_modules/ffc-js-client-sdk/umd/index.js" ></script>
+<script src="https://assets.feature-flags.co/sdks/ffc-sdk.js" ></script>
 ```
 
 ### Typescript 以及支持 import 语法的 JavaScript 
@@ -43,8 +43,9 @@ Cannot find module 'ffc-js-client-sdk/esm'. Did you mean to set the 'moduleResol
 
 ```javascript
   // 初始化sdk，传入环境Secret Key和用户信息
-  FFCJsClient.initialize('YThmLWRmZjUtNCUyMDIxMDkxNzA3NTYyMV9fMl9fMjJfXzExNl9fZGVmYXVsdF82NTM3Mg==', [option]);
+  FFCJsClient.initialize('YThmLWRmZjUtNCUyMDIxMDkxNzA3NTYyMV9fMl9fMjJfXzExNl9fZGVmYXVsdF82NTM3Mg==', [userInfo], [option]);
 ```
+其中 userInfo 可以为null, 这样的话就需要通过下边的 initUserInfo 方法传入.
 option 为可选参数，包含如下可选参数：
 ```
 {
