@@ -97,7 +97,6 @@ function getTrackPayloadStr(data: IFFCCustomEvent[]): string {
     secret: _environmentSecret,
     route: location.pathname,
     numericValue: 1,
-    timeStamp: Date.now(),
     appType: _appType,
     user: {
       fFUserName: _user.userName,
