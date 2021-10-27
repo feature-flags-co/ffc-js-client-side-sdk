@@ -28,8 +28,8 @@ steps:
 
   - task: AzureFileCopy@4
     inputs:
-      SourcePath: $(System.DefaultWorkingDirectory)/umd/index.min.js
+      SourcePath: $(System.DefaultWorkingDirectory)/umd/ffc-sdk.js
       azureSubscription: 'azure-china-devops'
       Destination: 'AzureBlob'
       storage: 'ffc0st0media0ce2'
-      ContainerName: 'ffc-js-sdk'
+      ContainerName: 'sdks'
