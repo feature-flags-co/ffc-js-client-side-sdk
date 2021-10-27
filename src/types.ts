@@ -18,6 +18,7 @@ export interface IFFCUser {
     trackCustomEvent: (data: IFFCCustomEvent[]) => boolean,
     trackAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
     track: (data: IFFCCustomEvent[]) => boolean,
+    sendUserVariationAsync: (featureFlagKey: string, variationOptionId: number) => Promise<void>,
     variationAsync: (featureFlagKey: string, defaultResult?: string) => Promise<string>,
     variation: (featureFlagKey: string, defaultResult?: string) => string
   }
@@ -44,6 +45,7 @@ export interface IFFCUser {
     envSecret: string,
     isActive: boolean,
     featureFlagId: string,
+    featureFlagType: FeatureFlagType, 
     featureFlagKey: string,
     items: ICssSelectorItem[]
   }
@@ -51,7 +53,13 @@ export interface IFFCUser {
   export interface ICssSelectorItem {
     cssSelector: string,
     variationValue: string,
+    variationOptionId: number,
     url: string
+  }
+
+  export enum FeatureFlagType {
+    Classic = 1,
+    Pretargeted = 2 // 已经预分流，无需我们的开关做用户分流
   }
 
   export enum EventType {

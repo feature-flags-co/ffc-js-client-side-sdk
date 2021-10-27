@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    'index': './src/index.ts'
+    'ffc-sdk': './src/index.ts'
   },
   devtool: 'source-map',
   module: {
