@@ -97,3 +97,25 @@ option 为可选参数，包含如下可选参数：
   ]);
 如果需要异步请求的函数，可以在源码"/src/index.js"文件中寻找"trackCustomEvent"函数
 ```
+
+### 捕捉点击事件(Click)
+```javascript
+  const data = [{
+    type: 'Click',
+    route: window.location.href,
+    eventName: [eventname]
+  }];
+
+  await FFCJsClient.trackAsync(data);
+```
+
+### 捕捉pageview事件(PageView)
+```javascript
+  const data = [{
+    type: 'PageView',
+    route: window.location.href,
+    eventName: [eventname]
+  }];
+
+  await FFCJsClient.trackAsync(data);
+```
