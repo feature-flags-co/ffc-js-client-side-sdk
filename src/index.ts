@@ -1,4 +1,4 @@
-import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType, ICssSelectorItem, FeatureFlagType } from "./types";
+import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType, ICssSelectorItem, FeatureFlagType, IHtmlProperty, ICSS } from "./types";
 
 declare global {
   interface Window {
@@ -201,8 +201,71 @@ function applyRules(items: ICssSelectorItem[], ffResult: string) {
 
   // show items (revert hiding)
   if (groupedItems[ffResult] && groupedItems[ffResult].length > 0) {
-    revertRules(groupedItems[ffResult]);
+    showOrModifyElements(groupedItems[ffResult]);
   }
+}
+
+function showOrModifyElements(items: ICssSelectorItem[]) {
+  items?.forEach(item => {
+    let nodes = document.querySelectorAll(item.cssSelector) as NodeListOf<HTMLElement>;
+    if (item.action === 'show' || item.action === 'modify') {
+      nodes.forEach(node => {
+        const style = {};
+        if (node.style.display === 'none') {
+          style['display'] = 'block';
+        }
+    
+        const rawStyle = node.getAttribute(`data-ffc-${ffc_special_value}`);
+        if (rawStyle !== null && rawStyle !== '') {
+          Object.assign(style, JSON.parse(rawStyle)); 
+        }
+    
+        Object.assign(node.style, style);
+
+        if (item.action === 'modify') {
+          // apply properties
+          item.htmlProperties?.forEach(p => {
+            node.setAttribute(p.name, p.value);
+          });
+
+          // apply content
+          if (item.htmlContent) {
+            node.innerHTML = item.htmlContent;
+          }
+          
+          // apply style
+          extractCSS(item.style).forEach(css => {
+            node.style[css.name] = css.value;
+          })
+        }
+      });
+    }
+  });
+}
+
+function extractCSS(css: string): ICSS[] {
+  return css.trim().replace(/(?:\r\n|\r|\n)/g, ';')
+    .replace(/\w*([\W\w])+\{/g, '')
+    .replace(/(?:\{|\})/g, '')
+    .split(';')
+    .filter(c => c.trim() !== '')
+    .map(c => {
+      const style = c.split(':');
+      if (style.length === 2) {
+        return {
+          name: style[0].trim(),
+          value: style[1].trim()
+        }
+      }
+      
+      return {
+        name: '',
+        value: ''
+      }
+    })
+    .filter(s => {
+      return s.name !== '' && s.value !== ''
+    });
 }
 
 async function zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[], observer: MutationObserver) {

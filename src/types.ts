@@ -49,11 +49,26 @@ export interface IFFCUser {
     featureFlagKey: string,
     items: ICssSelectorItem[]
   }
+
+  export interface IHtmlProperty {
+    id: string,
+    name: string,
+    value: string
+  }
+
+  export interface ICSS {
+    name: string,
+    value: string | number
+  }
   
   export interface ICssSelectorItem {
     cssSelector: string,
     variationValue: string,
     variationOptionId: number,
+    action: string,
+    htmlProperties: IHtmlProperty[],
+    htmlContent: string,
+    style: string,
     url: string
   }
 
