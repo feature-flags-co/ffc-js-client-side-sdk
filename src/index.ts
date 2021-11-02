@@ -230,7 +230,7 @@ function showOrModifyElements(items: ICssSelectorItem[]) {
 
           // apply content
           if (item.htmlContent) {
-            node.innerHTML = item.htmlContent;
+            node.textContent = item.htmlContent;
           }
           
           // apply style
