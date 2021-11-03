@@ -10,8 +10,9 @@
     <!-- Bootstrap CSS -->
     <link href="assets/css/bootstrap.min.511.css" rel="stylesheet" />
     <script src="assets/js/bootstrap.min.js"></script>
-    <script src="https://assets.feature-flags.co/sdks/ffc-sdk.js"></script>
-
+    <script data-ffc-client="MzZlLTY1MTAtNCUyMDIxMTEwMTE0NTIwNF9fNV9fNl9fMTJfX2RlZmF1bHRfYzVlNzU=" async src="https://assets.feature-flags.co/sdks/ffc-sdk.js"></script>
+    <!-- <script data-ffc-client="MzZlLTY1MTAtNCUyMDIxMTEwMTE0NTIwNF9fNV9fNl9fMTJfX2RlZmF1bHRfYzVlNzU=" async src="../umd/ffc-sdk.js"></script> -->
+    <!-- <script data-ad-client="ca-pub-3349787729360682" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> -->
     <title>feature-flags.co</title>
 </head>
 
@@ -24,7 +25,7 @@
     </div>
     <div class="container" id="version-b">
         <div class="row">
-            <h3>程序员版1</h3>
+            <h3>程序员版1</h3>`
             <a href="#" style="font-size: 32px;">开始使用</a>
         </div>
     </div>
@@ -35,6 +36,8 @@
         </div>
     </div>
 
+    <div class="welcome"><span>欢迎新同学</span> <a href="#">Onboarding</a></div>
+    <div class="welcomeb"><span>欢迎新同学b</span> <a href="#">Onboardingb</a></div>
     <style>
         .row {
             margin-top: 20px;
@@ -56,23 +59,24 @@
 
     <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
     <script type="text/javascript">
+     window.onload = (event) => {
         let userName = Date.now();
 
         // 初始化sdk，传入环境Secret Key和用户信息
-        FFCJsClient.initialize('YThmLWRmZjUtNCUyMDIxMDkxNzA3NTYyMV9fMl9fMjJfXzExNl9fZGVmYXVsdF82NTM3Mg==');
+        //FFCJsClient.initialize('MzZlLTY1MTAtNCUyMDIxMTEwMTE0NTIwNF9fNV9fNl9fMTJfX2RlZmF1bHRfYzVlNzU=', null, {baseUrl: 'https://ffc-api-ce2-dev.chinacloudsites.cn'});
 
         // 初始化用户信息，通常这一步会在登录后被调用
-        FFCJsClient.initUserInfo({
-            userName: 'sdk-sample-js-1252',
-            email: 'abc@myemail.com',
-            key: 'sdk-sample-js-1252',
-            customizeProperties: [
-                {
-                    name: "外放地址",
-                    value: "?from=zhihu&group=pm"
-                }
-            ]
-        });
+        // FFCJsClient.initUserInfo({
+        //     userName: 'sdk-sample-js-1252',
+        //     email: 'abc@myemail.com',
+        //     key: 'sdk-sample-js-1252',
+        //     customizeProperties: [
+        //         {
+        //             name: "外放地址",
+        //             value: "?from=zhihu&group=pm"
+        //         }
+        //     ]
+        // });
         let result = FFCJsClient.variation('主页---话术版本', '产品经理版1');
 
         if (result === '产品经理版1') {
@@ -88,6 +92,22 @@
             document.getElementById('version-a').style.display = 'block';
         }
 
+
+        // let data = [{
+        //     type: 'Click',
+        //     route: window.location.href,
+        //     eventName: 'click event'
+        // }];
+
+        // FFCJsClient.trackAsync(data);
+
+        // data = [{
+        //     type: 'PageView',
+        //     route: window.location.href,
+        //     eventName: 'pageview event'
+        // }];
+
+        // FFCJsClient.trackAsync(data);
         document.addEventListener("click", async function (e) {
             if (e.target && e.target.innerText == '使用文档' ||
                 e.target && e.target.innerText == '开始使用') {
@@ -104,7 +124,7 @@
                     alert("事件发送失败");
             }
         });
-
+     }
     </script>
 </body>
 
