@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    'ffc-sdk': './src/index.ts'
+    'ffc-sdk': './src/umd.ts'
   },
   devtool: 'source-map',
   module: {
@@ -25,5 +25,8 @@ module.exports = {
     umdNamedDefine: true,
     // prevent error: `Uncaught ReferenceError: self is not define`
     globalObject: 'this',
+  },
+  optimization: {
+    minimize: true
   },
 };
