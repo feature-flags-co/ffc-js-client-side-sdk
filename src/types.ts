@@ -34,7 +34,6 @@ export interface IFFCUser {
   }
   
   export interface IOption {
-    shouldTrackPageViewsAndClicks: boolean,
     baseUrl?: string,
     appType?: string,
     throttleWait?: number
