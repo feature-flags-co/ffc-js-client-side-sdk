@@ -437,14 +437,7 @@ function ffcguid() {
 }
 
 export const FFCJsClient : IFFCJsClient = {
-  initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
-    // delay showing of page content
-    const body = document.querySelector('body');
-    if (body) {
-      body.style.opacity = '0';
-      setTimeout(() => body.style.opacity = '1', 200);
-    }
-    
+  initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {    
     _environmentSecret = environmentSecret;
     if (user) {
       _user = Object.assign({}, _user, user);
