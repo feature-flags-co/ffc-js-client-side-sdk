@@ -442,7 +442,7 @@ export const FFCJsClient : IFFCJsClient = {
     const body = document.querySelector('body');
     if (body) {
       body.style.opacity = '0';
-      setTimeout(() => body.style.opacity = '1', 150);
+      setTimeout(() => body.style.opacity = '1', 200);
     }
     
     _environmentSecret = environmentSecret;
