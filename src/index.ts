@@ -329,15 +329,13 @@ async function trackZeroCodingAndClicks(zeroCodeSettings: IZeroCode[], exptMetri
   var callback = async function (mutationsList, observer) {
     if (mutationsList && mutationsList.length > 0) {
       observer.disconnect();
-      await bindClickHandlers(exptMetricSettings);
-      await zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
+      await Promise.all([bindClickHandlers(exptMetricSettings), zeroCodeSettingsCheckVariation(zeroCodeSettings, observer)]);
       observer.observe(document.body, { attributes: true, childList: true, subtree: true });
     }
   };
 
   const observer = new MutationObserver(callback);
-  await bindClickHandlers(exptMetricSettings);
-  await zeroCodeSettingsCheckVariation(zeroCodeSettings, observer);
+  await Promise.all([bindClickHandlers(exptMetricSettings), zeroCodeSettingsCheckVariation(zeroCodeSettings, observer)]);
   observer.observe(document.body, { attributes: true, childList: true, subtree: true });
 }
 /********************************Zero code setting *************************************/
@@ -415,11 +413,9 @@ async function trackPageViews (exptMetricSettings: IExptMetricSetting[]) {
 }
 
 async function initAutoTracking (envSecret: string) {
-  const exptMetricSettings = await getActiveExperimentMetricSettings(envSecret);
-  let zeroCodeSettings = await getZeroCodeSettings(envSecret);
+  const settings = await Promise.all([getActiveExperimentMetricSettings(envSecret), getZeroCodeSettings(envSecret)]);
 
-  await trackPageViews(exptMetricSettings);
-  await trackZeroCodingAndClicks(zeroCodeSettings, exptMetricSettings);
+  await Promise.all([trackPageViews(settings[0]), trackZeroCodingAndClicks(settings[1], settings[0])]);
 }
 
 let _autoTrackingInited: boolean = false
@@ -442,6 +438,13 @@ function ffcguid() {
 
 export const FFCJsClient : IFFCJsClient = {
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
+    // delay showing of page content
+    const body = document.querySelector('body');
+    if (body) {
+      body.style.opacity = '0';
+      setTimeout(() => body.style.opacity = '1', 150);
+    }
+    
     _environmentSecret = environmentSecret;
     if (user) {
       _user = Object.assign({}, _user, user);
