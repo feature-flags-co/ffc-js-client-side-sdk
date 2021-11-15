@@ -230,7 +230,7 @@ function showOrModifyElements(items: ICssSelectorItem[]) {
 
           // apply content
           if (item.htmlContent) {
-            node.textContent = item.htmlContent;
+            node.innerHTML = item.htmlContent;
           }
           
           // apply style
@@ -424,11 +424,45 @@ async function initAutoTracking (envSecret: string) {
 
 let _autoTrackingInited: boolean = false
 
+// generate default user info
+function ffcguid() {
+  let ffcHomePageGuid = localStorage.getItem("ffc-guid");
+  if (ffcHomePageGuid) {
+      return ffcHomePageGuid;
+  }
+  else {
+      let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+      });
+      localStorage.setItem("ffc-guid", uuid);
+      return uuid;
+  }
+}
+
 export const FFCJsClient : IFFCJsClient = {
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     _environmentSecret = environmentSecret;
     if (user) {
       _user = Object.assign({}, _user, user);
+    } else {
+      let sessionId = ffcguid();
+      var c_name = 'JSESSIONID';
+      if (document.cookie.length > 0) {
+          let c_start = document.cookie.indexOf(c_name + "=")
+          if (c_start != -1) {
+              c_start = c_start + c_name.length + 1
+              let c_end = document.cookie.indexOf(";", c_start)
+              if (c_end == -1) c_end = document.cookie.length
+              sessionId = unescape(document.cookie.substring(c_start, c_end));
+          }
+      }
+      _user = {
+          userName: sessionId,
+          email: `${sessionId}@anonymous.com`,
+          key: sessionId,
+          customizeProperties: []
+      };
     }
     
     _baseUrl = option?.baseUrl || _baseUrl;
