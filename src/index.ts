@@ -444,10 +444,10 @@ export const FFCJsClient : IFFCJsClient = {
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     // delay showing of page content
     const html = document.querySelector('html');
-    const waittime = 200;
+    //const waittime = 1000;
     if (html) {
         html.style.visibility = 'hidden';
-        setTimeout(() => html.style.visibility = 'visible', waittime);
+        //setTimeout(() => html.style.visibility = 'visible', waittime);
     }
 
     _environmentSecret = environmentSecret;
