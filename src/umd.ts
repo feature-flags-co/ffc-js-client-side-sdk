@@ -1,5 +1,12 @@
 // This file is only for umd version
 
+const body = document.querySelector('body');
+const waittime = 200;
+if (body) {
+    body.style.visibility = 'hidden';
+    setTimeout(() => body.style.visibility = 'visible', waittime);
+}
+
 import { FFCJsClient } from "./index";
 
 const script = document.querySelector('script[data-ffc-client]');

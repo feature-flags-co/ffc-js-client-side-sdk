@@ -443,29 +443,29 @@ function ffcguid() {
 export const FFCJsClient : IFFCJsClient = {
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     // delay showing of page content
-    const body = document.querySelector('body');
+    // const body = document.querySelector('body');
     const waittime = 200;
-    if (body) {
-        body.style.visibility = 'hidden';
-        setTimeout(() => body.style.visibility = 'visible', waittime);
-    } else {
-        var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
-        var observer = new MutationObserver(function (mutationsList, me) {
-            // `mutations` is an array of mutations that occurred
-            // `me` is the MutationObserver instance
-            if (mutationsList && mutationsList.length > 0) {
-              const body = document.querySelector('body');
-              if (body) {
-                me.disconnect();
-                body.style.visibility = 'hidden';
-                setTimeout(() => body.style.visibility = 'visible', waittime);
-              }
+    // if (body) {
+    //     body.style.visibility = 'hidden';
+    //     setTimeout(() => body.style.visibility = 'visible', waittime);
+    // } else {
+      var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
+      var observer = new MutationObserver(function (mutationsList, me) {
+          // `mutations` is an array of mutations that occurred
+          // `me` is the MutationObserver instance
+          if (mutationsList && mutationsList.length > 0) {
+            const body = document.querySelector('body');
+            if (body) {
+              me.disconnect();
+              body.style.visibility = 'hidden';
+              setTimeout(() => body.style.visibility = 'visible', waittime);
             }
-        });
-          
-        // start observing
-        observer.observe(document, { attributes: false, childList: true, subtree: false });
-    }
+          }
+      });
+      
+      // start observing
+      observer.observe(document, { attributes: false, childList: true, subtree: false });
+    //}
 
     _environmentSecret = environmentSecret;
     if (user) {
