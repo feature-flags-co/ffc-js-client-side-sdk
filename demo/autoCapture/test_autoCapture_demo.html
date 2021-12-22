@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>测试自动捕获</title>
+</head>
+<body>
+    <div class="container">
+        <div class="content-item">
+            <h3>测试点击</h3>
+            <button>按钮点击</button>
+        </div>
+        <div class="content-item">
+            <h3>测试自定义事件</h3>
+            <span class="label">输入框 input 事件</span>
+            <input type="text" placeholder="请输入...">
+
+            <span class="label" style="margin-top: 20px;">单选</span>
+            <div>
+                <input type="radio" name="gender" value="man">男
+                <input type="radio" name="gender" value="woman">女
+            </div>
+
+            <span class="label" style="margin-top: 20px;">复选</span>
+            <div>
+                <input type="checkbox" name="fruit" value="apple">苹果
+                <input type="checkbox" name="fruit" value="banana">香蕉
+                <input type="checkbox" name="fruit" value="orange">橘子
+            </div>
+
+            <span class="label" style="margin-top: 20px;">Select 选择框</span>
+            <select name="book" id="book">
+                <option value="Java">Java 从入门到放弃</option>
+                <option value="PHP">PHP 从入门到放弃</option>
+                <option value="C#">C# 从入门到放弃</option>
+            </select>
+        </div>
+        <div class="content-item">
+            <h3>测试页面变化</h3>
+            <h4>路由</h4>
+            <div class="route">
+                <a href="#/router_1">Content 1</a>
+                <a href="#/router_2">Content 2</a>
+                <a href="#/router_3">Content 3</a>
+            </div>
+            <div id="route-container">
+
+            </div>
+        </div>
+    </div>
+    
+    <script src="../../umd/ffc-sdk.js"></script>
+    <script type="text/javascript">
+
+        let envKey = 'YjRlLWY1YjEtNCUyMDIxMDYwNzA2NTYwOF9fMl9fM19fN19fZGVmYXVsdF84NDNlMw==';
+        FFCJsClient.initialize(envKey, null, {baseUrl: 'http://localhost:5001'});
+
+        FFCJsClient.initUserInfo({
+            userName: 'local-debug-user-007',
+            email: '',
+            key: 'local-debug-user-007',
+            customizeProperties: []
+        });
+    </script>
+
+    <script src="./router_config.js"></script>
+    <script src="./router_test.js"></script>
+</body>
+</html>

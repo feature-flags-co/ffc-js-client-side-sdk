@@ -1,0 +1,79 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 64px;
+}
+
+.container .content-item {
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 20px;
+    padding: 0px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.container .content-item h3 {
+    color: orange;
+}
+
+button {
+    width: 100px;
+    padding: 5px 3px;
+}
+
+span.label {
+    color: gray;
+    line-height: 32px;
+}
+
+input[type='text'] {
+    width: 240px;
+    padding: 3px 5px;
+    outline: none;
+}
+
+select {
+    width: 240px;
+    padding: 5px;
+    outline: none;
+}
+
+select option {
+    padding: 4px 5px;
+}
+
+div.route {
+    margin-bottom: 10px;
+}
+
+div.route a {
+    text-decoration: none;
+    color: gray;
+    line-height: 32px;
+    width: 150px;
+    padding: 2px 5px;
+    border: 1px solid gray;
+    border-radius: 5px;
+}
+
+div#route-container {
+    width: 300px;
+    height: 200px;
+    border-radius: 5px;
+    border: 1px solid black;
+    padding: 10px;
+}
