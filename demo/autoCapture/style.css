@@ -77,3 +77,9 @@ div#route-container {
     border: 1px solid black;
     padding: 10px;
 }
+
+a.link-click {
+    text-decoration: none;
+    color: gray;
+    margin-top: 10px;
+}

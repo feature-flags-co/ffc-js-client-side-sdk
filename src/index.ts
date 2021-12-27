@@ -1,4 +1,5 @@
 import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType, ICssSelectorItem, FeatureFlagType, IHtmlProperty, ICSS } from "./types";
+import { addEventsListener } from "./listenerEvent";
 
 declare global {
   interface Window {
@@ -470,16 +471,18 @@ export const FFCJsClient : IFFCJsClient = {
     _throttleWait = option?.throttleWait || _throttleWait;
 
     if (_user.key) {
-      initAutoTracking(_environmentSecret);
+      // initAutoTracking(_environmentSecret);
       _autoTrackingInited = true;
     }
+
+    addEventsListener();
   },
   initUserInfo (user) {
     if (!!user) {
       _user = Object.assign({}, _user, user);
 
       if (!_autoTrackingInited) {
-        initAutoTracking(_environmentSecret);
+        // initAutoTracking(_environmentSecret);
         _autoTrackingInited = true;
       }
     }
