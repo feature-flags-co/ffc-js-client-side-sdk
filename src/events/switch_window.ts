@@ -4,6 +4,5 @@ export const listenerSwitchWindow = (pageStop: PageStop) => {
 
     window.addEventListener("visibilitychange", () => {
         pageStop.switchWindow();
-        console.log(pageStop)
     })
 }

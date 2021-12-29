@@ -1,20 +1,58 @@
+import { trackParam } from "./classes/interfaces";
 import { PageStop } from "./classes/page_stop";
 import { listenerClickEvent } from "./events/click"
 import { listenerInputEvent } from "./events/input";
 import { listenerPopstate } from "./events/popstate";
 import { listenerSwitchWindow } from "./events/switch_window";
+import { IFFCUser } from "./types";
+import { onRequest } from "./utils/request";
 
-export const addEventsListener = () => {
+let listener: eventsListener | null = null;
 
-    const pageStopObject = new PageStop();
+export class eventsListener {
 
-    listenerClickEvent();
-    listenerInputEvent();
-    listenerPopstate(pageStopObject);
-    listenerSwitchWindow(pageStopObject);
+    private environmentSecret: string;
+    private pageStopObject: PageStop;
+    private userInfo: IFFCUser;
 
-    // 加载时
-    window.addEventListener("load", () => {
-        pageStopObject.init(window.location);
-    })
-} 
+    constructor(key: string, user: IFFCUser) {
+
+        this.pageStopObject = new PageStop();
+        this.environmentSecret = "MTc1LTAxMzItNCUyMDIxMTAyNTA4NTUwOF9fNTdfXzY5X18xNDdfX2RlZmF1bHRfODY1MjQ=";
+        this.userInfo = {...user};
+
+        listenerClickEvent(this);
+        listenerInputEvent(this);
+        listenerPopstate(this.pageStopObject);
+        listenerSwitchWindow(this.pageStopObject);
+
+        // 加载时
+        window.addEventListener("load", () => {
+            let pageviewParams = this.pageStopObject.init(window.location);
+            console.log(pageviewParams)
+        })
+    }
+
+    // 初始化用户信息
+    public initUserInfo(user: IFFCUser) {
+        this.userInfo = {...user};
+    }
+
+    // 获取用户信息
+    public getUserInfo() {
+        return this.userInfo;
+    }
+
+    // 向后台传递数据
+    public requestData(param: trackParam) {
+        onRequest(param, this.environmentSecret);
+    }
+}
+
+export const addEventsListener = (args: string | null, user: IFFCUser) => {
+    if(!listener) {
+        listener = new eventsListener(args as string, user);
+    } else {
+        listener.initUserInfo(user);
+    }
+}

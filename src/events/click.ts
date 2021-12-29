@@ -1,25 +1,53 @@
+import { ClickEvent } from "../classes/interfaces";
+import { eventsListener } from "../listenerEvent";
 import { getElementSelector } from "../utils/handleSelector";
 import { locationSortout } from "../utils/locationSortout";
 
-// 当前需要记录的点击元素
-const NODES = ["A", "BUTTON"];
-
-export const listenerClickEvent = () => {
+export const listenerClickEvent = (that: eventsListener) => {
 
     window.addEventListener("click", (event: MouseEvent) => {
         const targetElement = event.target;
 
         if(targetElement) {
             const nodeName = targetElement['nodeName'];
-            
-            if(NODES.includes(nodeName)) {
-                const selectors = getElementSelector(event.target);
-                const text = targetElement['innerText'];
-                const location = locationSortout();
-                console.log(text);
-                console.log(selectors);
-                console.log(location);
+
+            switch(nodeName) {
+                case "A":
+                case "BUTTON":
+                    that.requestData({
+                        userKey: that.getUserInfo().key,
+                        clickEvent: sortoutParams(targetElement, nodeName.toLowerCase())
+                    });
+                    break;
+                case "INPUT":
+
+                    /**
+                     * 监听除 input[type="text"] 之外 input 的点击事件
+                     */
+                    const elementType = targetElement['type'];
+                    if(elementType === "radio" || elementType === "checkbox") {
+                        that.requestData({
+                            userKey: that.getUserInfo().key,
+                            clickEvent: sortoutParams(targetElement, elementType)
+                        });
+                    }
+                    break;
             }
         }
     })
+}
+
+const sortoutParams = (element: any, elementType: string): ClickEvent => {
+    const selectors = getElementSelector(element);
+    const text = element['innerText'];
+    const location = locationSortout();
+
+    let param: ClickEvent = {
+        ...location,
+        clickType: '',
+        innerText: text || "",
+        cssSelector: selectors,
+        elementType
+    }
+    return param;
 }

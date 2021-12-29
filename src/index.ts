@@ -475,7 +475,7 @@ export const FFCJsClient : IFFCJsClient = {
       _autoTrackingInited = true;
     }
 
-    addEventsListener();
+    addEventsListener(_environmentSecret, _user);
   },
   initUserInfo (user) {
     if (!!user) {
@@ -486,6 +486,7 @@ export const FFCJsClient : IFFCJsClient = {
         _autoTrackingInited = true;
       }
     }
+    addEventsListener(null, user);
   },
   trackCustomEventAsync: async (data: IFFCCustomEvent[]) => {
     data = data || [];

@@ -34,6 +34,7 @@ export class PageStop {
         this.startTime = Date.now();
 
         // 发送当前页面的 pageview 参数
+        return this.location;
     }
 
     /**
@@ -56,7 +57,16 @@ export class PageStop {
 
             console.log(stopTime);
 
-            // 发送新页面的 pageview 参数
+            // pageview 参数，当前 location
+            let pageviewParams = {
+                ...locationSortout()
+            }
+
+            // pagestop 参数，上一个 location
+            let pagestopParams = {
+                ...this.location,
+                time: stopTime
+            }
 
             // 赋值新的类成员属性值
             this.lastURL = this.currentURL;
@@ -66,6 +76,12 @@ export class PageStop {
             this.endTime = 0;
             this.leaveStartTime = 0;
             this.leaveEndTime = 0;
+
+            return {
+                pageviewParams, pagestopParams
+            }
+        } else {
+            return null;
         }
     }
 
