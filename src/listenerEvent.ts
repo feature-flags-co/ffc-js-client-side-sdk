@@ -23,13 +23,18 @@ export class eventsListener {
 
         listenerClickEvent(this);
         listenerInputEvent(this);
-        listenerPopstate(this.pageStopObject);
+        listenerPopstate(this.pageStopObject, this);
         listenerSwitchWindow(this.pageStopObject);
 
         // 加载时
         window.addEventListener("load", () => {
             let pageviewParams = this.pageStopObject.init(window.location);
-            console.log(pageviewParams)
+            
+            this.requestData({
+                userKey: this.userInfo.key,
+                UtcTimeStampFromClientEnd: Date.now(),
+                pageViewEvent: pageviewParams
+            })
         })
     }
 

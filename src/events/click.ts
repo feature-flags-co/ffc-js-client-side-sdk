@@ -16,11 +16,11 @@ export const listenerClickEvent = (that: eventsListener) => {
                 case "BUTTON":
                     that.requestData({
                         userKey: that.getUserInfo().key,
+                        UtcTimeStampFromClientEnd: Date.now(),
                         clickEvent: sortoutParams(targetElement, nodeName.toLowerCase())
                     });
                     break;
                 case "INPUT":
-
                     /**
                      * 监听除 input[type="text"] 之外 input 的点击事件
                      */
@@ -28,6 +28,7 @@ export const listenerClickEvent = (that: eventsListener) => {
                     if(elementType === "radio" || elementType === "checkbox") {
                         that.requestData({
                             userKey: that.getUserInfo().key,
+                            UtcTimeStampFromClientEnd: Date.now(),
                             clickEvent: sortoutParams(targetElement, elementType)
                         });
                     }

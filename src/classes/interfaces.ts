@@ -26,6 +26,7 @@ export interface PageStayDurationEvent extends LocationInfo {
 
 export interface trackParam {
     userKey: string;
+    UtcTimeStampFromClientEnd: number;
     clickEvent?: ClickEvent;
     pageViewEvent?: PageViewEvent;
     customEvent?: CustomEvent;

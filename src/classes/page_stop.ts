@@ -55,8 +55,6 @@ export class PageStop {
             let leaveTime = this.leaveEndTime - this.leaveStartTime;
             let stopTime = start_end - leaveTime;
 
-            console.log(stopTime);
-
             // pageview 参数，当前 location
             let pageviewParams = {
                 ...locationSortout()
@@ -65,7 +63,7 @@ export class PageStop {
             // pagestop 参数，上一个 location
             let pagestopParams = {
                 ...this.location,
-                time: stopTime
+                duration: stopTime
             }
 
             // 赋值新的类成员属性值
