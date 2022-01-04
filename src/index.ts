@@ -472,7 +472,7 @@ export const FFCJsClient : IFFCJsClient = {
     _throttleWait = option?.throttleWait || _throttleWait;
 
     if (_user.key) {
-      // initAutoTracking(_environmentSecret);
+      initAutoTracking(_environmentSecret);
       _autoTrackingInited = true;
     }
 
@@ -484,7 +484,7 @@ export const FFCJsClient : IFFCJsClient = {
       _user = Object.assign({}, _user, user);
 
       if (!_autoTrackingInited) {
-        // initAutoTracking(_environmentSecret);
+        initAutoTracking(_environmentSecret);
         _autoTrackingInited = true;
       }
     }
