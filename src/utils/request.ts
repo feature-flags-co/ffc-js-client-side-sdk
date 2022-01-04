@@ -1,11 +1,19 @@
 import { trackParam } from "../classes/interfaces";
 
-const devurl: string = "https://ffc-api-ce2-dev.chinacloudsites.cn/api/public/analytics/userbehaviortrack";
+// 最大重复请求次数
+const maxRequestTimes: number = 1;
 
-export const onRequest = async (params: trackParam, secretKey: string) => {
+// 重复请求间隔时间，单位：s
+const reRequestTime: number[] = [10, 30, 60, 600, 1800];
+
+export const onRequest = async (params: trackParam, secretKey: string, url: string) => {
+
+    params.timer && clearTimeout(params.timer);
 
     try {
-        const response = await fetch(devurl, {
+        params.UtcTimeStampFromClientEnd = Date.now();
+
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -26,15 +34,16 @@ export const onRequest = async (params: trackParam, secretKey: string) => {
 
         if(!flag || !data.data.timeStamp) {
             // 重新发送
-        } else {
-            console.log("发送成功!");
+            reRequest(params, secretKey, url);
         }
 
     } catch(error) {
-        console.log(error);
+        // 重新发送
+        reRequest(params, secretKey, url);
     }
 }
 
+// 判断是否存储成功
 const judgeSaveSuccess = (params: trackParam, result: any): boolean => {
 
     let keys = Object.keys(params);
@@ -42,7 +51,7 @@ const judgeSaveSuccess = (params: trackParam, result: any): boolean => {
 
     last: for(let i = 0; i < keys.length; i++) {
 
-        if(!["userKey", "UtcTimeStampFromClientEnd"].includes(keys[i])) {
+        if(!["userKey", "UtcTimeStampFromClientEnd", "reRequestTimes", "reRequestTime"].includes(keys[i])) {
 
             let _params_keys = Object.keys(result[keys[i]]);
 
@@ -59,3 +68,15 @@ const judgeSaveSuccess = (params: trackParam, result: any): boolean => {
     return flag;
 } 
 
+// 重新请求
+const reRequest = (params: trackParam, secretKey: string, url: string) => {
+    const times = params.reRequestTimes as number;
+    params.reRequestTime = reRequestTime[times];
+    params.reRequestTimes = times + 1;
+
+    if(params.reRequestTimes <= maxRequestTimes) {
+        params.timer = setTimeout(() => {
+            onRequest(params, secretKey, url);
+        }, params.reRequestTime * 1000);
+    }
+}

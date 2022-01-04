@@ -8,6 +8,7 @@ export class PageStop {
     private endTime: number = 0;
     private leaveStartTime: number = 0;
     private leaveEndTime: number = 0;
+    private leaveTimes: number = 0;
 
     private location: {
         href: string,
@@ -52,8 +53,7 @@ export class PageStop {
             this.endTime = Date.now();
 
             let start_end = this.endTime - this.startTime;
-            let leaveTime = this.leaveEndTime - this.leaveStartTime;
-            let stopTime = start_end - leaveTime;
+            let stopTime = start_end - this.leaveTimes;
 
             // pageview 参数，当前 location
             let pageviewParams = {
@@ -74,6 +74,7 @@ export class PageStop {
             this.endTime = 0;
             this.leaveStartTime = 0;
             this.leaveEndTime = 0;
+            this.leaveTimes = 0;
 
             return {
                 pageviewParams, pagestopParams
@@ -92,6 +93,7 @@ export class PageStop {
             this.leaveStartTime = Date.now();
         } else if(flag === 'visible') {
             this.leaveEndTime = Date.now();
+            this.leaveTimes += (this.leaveEndTime - this.leaveStartTime);
         }
     }
 }

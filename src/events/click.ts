@@ -15,8 +15,6 @@ export const listenerClickEvent = (that: eventsListener) => {
                 case "A":
                 case "BUTTON":
                     that.requestData({
-                        userKey: that.getUserInfo().key,
-                        UtcTimeStampFromClientEnd: Date.now(),
                         clickEvent: sortoutParams(targetElement, nodeName.toLowerCase())
                     });
                     break;
@@ -25,11 +23,13 @@ export const listenerClickEvent = (that: eventsListener) => {
                      * 监听除 input[type="text"] 之外 input 的点击事件
                      */
                     const elementType = targetElement['type'];
+
                     if(elementType === "radio" || elementType === "checkbox") {
+                        const name = targetElement['name'];
+                        const value = targetElement['value'];
+
                         that.requestData({
-                            userKey: that.getUserInfo().key,
-                            UtcTimeStampFromClientEnd: Date.now(),
-                            clickEvent: sortoutParams(targetElement, elementType)
+                            clickEvent: sortoutParams(targetElement, elementType, name, value)
                         });
                     }
                     break;
@@ -38,7 +38,7 @@ export const listenerClickEvent = (that: eventsListener) => {
     })
 }
 
-const sortoutParams = (element: any, elementType: string): ClickEvent => {
+const sortoutParams = (element: any, elementType: string, name: string | null = null, value: string | null = null): ClickEvent => {
     const selectors = getElementSelector(element);
     const text = element['innerText'];
     const location = locationSortout();
@@ -48,7 +48,13 @@ const sortoutParams = (element: any, elementType: string): ClickEvent => {
         clickType: '',
         innerText: text || "",
         cssSelector: selectors,
-        elementType
+        elementType,
+        extra: null
     }
+
+    if(name && value) {
+        param.extra = `${name}:${value}`;
+    }
+
     return param;
 }

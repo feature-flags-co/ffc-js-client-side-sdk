@@ -7,18 +7,19 @@ import { listenerSwitchWindow } from "./events/switch_window";
 import { IFFCUser } from "./types";
 import { onRequest } from "./utils/request";
 
-let listener: eventsListener | null = null;
-
 export class eventsListener {
 
     private environmentSecret: string;
+    private path: string = "/api/public/analytics/userbehaviortrack";
+    private url: string = "";
     private pageStopObject: PageStop;
     private userInfo: IFFCUser;
 
-    constructor(key: string, user: IFFCUser) {
+    constructor(key: string, url: string, user: IFFCUser) {
 
         this.pageStopObject = new PageStop();
-        this.environmentSecret = "MTc1LTAxMzItNCUyMDIxMTAyNTA4NTUwOF9fNTdfXzY5X18xNDdfX2RlZmF1bHRfODY1MjQ=";
+        this.environmentSecret = key;
+        this.url = url;
         this.userInfo = {...user};
 
         listenerClickEvent(this);
@@ -49,15 +50,26 @@ export class eventsListener {
     }
 
     // 向后台传递数据
-    public requestData(param: trackParam) {
-        onRequest(param, this.environmentSecret);
-    }
-}
+    public requestData(param: any) {
+        let _param: trackParam = {
+            ...param,
+            userKey: this.getUserInfo().key,
+            reRequestTime: 0,
+            reRequestTimes: 0
+        }
 
-export const addEventsListener = (args: string | null, user: IFFCUser) => {
-    if(!listener) {
-        listener = new eventsListener(args as string, user);
-    } else {
-        listener.initUserInfo(user);
+        onRequest(_param, this.environmentSecret, `${this.url}${this.path}`);
+    }
+
+    // customEvent
+    public track(name: string, descript: string, value: string) {
+        this.requestData({
+            userKey: this.userInfo.key,
+            customEvent: {
+                eventName: name,
+                eventDescription: descript,
+                eventValue: value
+            }
+        })
     }
 }

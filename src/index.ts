@@ -1,5 +1,5 @@
 import { IFFCUser, IFFCCustomEvent, IFFCJsClient, IOption, IZeroCode, IExptMetricSetting, EventType, UrlMatchType, ICssSelectorItem, FeatureFlagType, IHtmlProperty, ICSS } from "./types";
-import { addEventsListener } from "./listenerEvent";
+import { eventsListener } from "./listenerEvent";
 
 declare global {
   interface Window {
@@ -442,6 +442,7 @@ function ffcguid() {
 }
 
 export const FFCJsClient : IFFCJsClient = {
+  autoCapture: null,
   initialize: function (environmentSecret: string, user?: IFFCUser, option?: IOption) {
     _environmentSecret = environmentSecret;
     if (user) {
@@ -475,7 +476,8 @@ export const FFCJsClient : IFFCJsClient = {
       _autoTrackingInited = true;
     }
 
-    addEventsListener(_environmentSecret, _user);
+    // 自动捕捉
+    FFCJsClient.autoCapture =  new eventsListener(_environmentSecret, _baseUrl, _user);
   },
   initUserInfo (user) {
     if (!!user) {
@@ -486,7 +488,9 @@ export const FFCJsClient : IFFCJsClient = {
         _autoTrackingInited = true;
       }
     }
-    addEventsListener(null, user);
+    
+    // 自动捕捉设置用户信息
+    FFCJsClient.autoCapture?.initUserInfo(user);
   },
   trackCustomEventAsync: async (data: IFFCCustomEvent[]) => {
     data = data || [];

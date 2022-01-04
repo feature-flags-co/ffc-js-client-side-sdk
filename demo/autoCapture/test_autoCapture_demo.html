@@ -38,6 +38,13 @@
                 <option value="PHP">PHP 从入门到放弃</option>
                 <option value="C#">C# 从入门到放弃</option>
             </select>
+
+            <div style="padding-top: 20px;">
+                <label for="switch_close">开</label>
+                <input type="radio" name="switch" id="switch_close">
+                <label for="switch_open">关</label>
+                <input type="radio" name="switch" id="switch_open">
+            </div>
         </div>
         <div class="content-item">
             <h3>测试页面变化</h3>
@@ -56,8 +63,8 @@
     <script src="../../umd/ffc-sdk.js"></script>
     <script type="text/javascript">
 
-        let envKey = 'YjRlLWY1YjEtNCUyMDIxMDYwNzA2NTYwOF9fMl9fM19fN19fZGVmYXVsdF84NDNlMw==';
-        FFCJsClient.initialize(envKey, null, {baseUrl: 'http://localhost:5001'});
+        let envKey = 'MTc1LTAxMzItNCUyMDIxMTAyNTA4NTUwOF9fNTdfXzY5X18xNDdfX2RlZmF1bHRfODY1MjQ=';
+        FFCJsClient.initialize(envKey, null, {baseUrl: 'https://ffc-api-ce2-dev.chinacloudsites.cn'});
 
         FFCJsClient.initUserInfo({
             userName: 'local-debug-user-007',
@@ -66,6 +73,7 @@
             customizeProperties: []
         });
 
+        FFCJsClient.autoCapture.track("customEvent", "自定义事件", "10086");
     </script>
 
     <script src="./router_config.js"></script>

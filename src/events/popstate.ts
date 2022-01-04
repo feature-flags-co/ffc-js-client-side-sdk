@@ -7,14 +7,10 @@ export const listenerPopstate = (pageStop: PageStop, that: eventsListener) => {
         let params = pageStop.popStateCheck(window.location);
 
         that.requestData({
-            userKey: that.getUserInfo().key,
-            UtcTimeStampFromClientEnd: Date.now(),
             pageViewEvent: params?.pageviewParams
         })
         
         that.requestData({
-            userKey: that.getUserInfo().key,
-            UtcTimeStampFromClientEnd: Date.now(),
             pageStayDurationEvent: params?.pagestopParams
         })
     })

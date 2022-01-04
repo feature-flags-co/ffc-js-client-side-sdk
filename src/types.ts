@@ -1,3 +1,5 @@
+import { eventsListener } from "./listenerEvent";
+
 export interface IFFCUser {
     userName: string,
     email: string,
@@ -20,7 +22,8 @@ export interface IFFCUser {
     track: (data: IFFCCustomEvent[]) => boolean,
     sendUserVariationAsync: (featureFlagKey: string, variationOptionId: number) => Promise<void>,
     variationAsync: (featureFlagKey: string, defaultResult?: string) => Promise<string>,
-    variation: (featureFlagKey: string, defaultResult?: string) => string
+    variation: (featureFlagKey: string, defaultResult?: string) => string,
+    autoCapture?: eventsListener | null
   }
   
   export interface IFFCCustomEvent {
