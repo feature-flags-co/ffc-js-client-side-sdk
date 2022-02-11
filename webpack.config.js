@@ -1,4 +1,5 @@
 const path = require('path');
+const { CodeRefsPlugin }  = require('ffc-code-refs-webpack-plugin');
 
 module.exports = {
   entry: {
@@ -26,6 +27,9 @@ module.exports = {
     // prevent error: `Uncaught ReferenceError: self is not define`
     globalObject: 'this',
   },
+  plugins: [
+    new CodeRefsPlugin(),
+  ],
   optimization: {
     minimize: true
   },

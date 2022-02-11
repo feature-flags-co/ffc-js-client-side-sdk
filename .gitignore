@@ -4,3 +4,4 @@ esm
 commonjs
 
 tests
+.vscode
