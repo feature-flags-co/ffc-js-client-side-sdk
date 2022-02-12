@@ -58,6 +58,9 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
     const message = JSON.parse(event.data);
     if (message.messageType === 'data-sync') {
       onMessage(message.data);
+      if (message.data.featureFlags.length > 0){
+        logger.logDebug('socket push update time(ms): ', Date.now() - message.data.featureFlags[0].timestamp);
+      }
     }
   });
 }
