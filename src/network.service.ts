@@ -76,7 +76,7 @@ async function postData(url: string = '', data: any = {}, headers: {[key: string
   });
 
   try {
-    return response.json(); // parses JSON response into native JavaScript objects
+    return response.status === 200? response.json() : {};
   } catch (err) {
     logger.logDebug(response);
     return {};
