@@ -18,7 +18,7 @@ const envSecret = script?.getAttribute('data-ffc-client')
 if (script && envSecret) {
   const option: IOption = {
     secret: envSecret!,
-    useAnonymousUser: true,
+    anonymous: true,
     //api: 'http://localhost:5001/'
   };
   Ffc.init(option);

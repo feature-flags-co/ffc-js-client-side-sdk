@@ -35,14 +35,14 @@ export function validateOption(option: IOption): string | null {
       return 'option is mandatory';
     }
   
-    const { secret, useAnonymousUser, user } = option;
+    const { secret, anonymous, user } = option;
   
     if (secret === undefined || secret === null || secret.trim() === '') {
       return 'secret is mandatory in option';
     }
   
     // validate user
-    if (!!useAnonymousUser === false && !user) {
+    if (!!anonymous === false && !user) {
       return 'user is mandatory when not using anonymous user';
     }
   

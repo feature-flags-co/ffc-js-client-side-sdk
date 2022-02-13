@@ -64,7 +64,7 @@ Ffc.init(option);
 
 All the parameters available in option:
 - **secret**: the client side secret of your environment. **mandatory**
-- **useAnonymousUser**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be setted later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
+- **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be setted later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
 - **boostrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
 - **devMode**: true if you want to init the SDK with developer mode, this will add an button(icon) on the bottom right of the screen, which allows you to manipulate all the feature flags locally during development. It can also be activated after initialization by a commande in the browser console or a querystring in your url. The default value is false. **not mandatory**
 - **api**: the API url of the server, set it only if you are self hosting the back-end. **not mandatory**
