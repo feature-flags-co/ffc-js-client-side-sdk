@@ -198,6 +198,7 @@ To get notified when a feature flag is changed, we offer two methods
 - subscribe to the changes of any feature flag(s)
 ```javascript
 Ffc.on('ff_update', (changes) => {
+  // changes has this structure [{id: 'the feature_flag_key', oldValue: '', newValue: ''}]
   ...
 });
 
@@ -206,6 +207,7 @@ Ffc.on('ff_update', (changes) => {
 ```javascript
 // replace feature_flag_key with your feature flag key
 Ffc.on('ff_update:feature_flag_key', (change) => {
+  // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
   const myFeature = Ffc.variation('feature_flag_key', 'default value');
   ...
 });

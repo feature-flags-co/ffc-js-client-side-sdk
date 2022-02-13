@@ -32,7 +32,6 @@
     "/umd"
   ],
   "devDependencies": {
-    "ffc-code-refs-webpack-plugin": "^0.0.4",
     "gts": "^3.1.0",
     "rimraf": "^3.0.2",
     "ts-loader": "^9.2.6",
