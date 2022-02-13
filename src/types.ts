@@ -1,9 +1,9 @@
 export interface IOption {
     secret: string,
     useAnonymousUser?: boolean,
+    boostrap?: IFeatureFlag[],
     devMode?: boolean,
     api?: string,
-    streamEndpoint?: string,
     appType?: string,
     user?: IUser
   }

@@ -4,7 +4,7 @@ import { eventHub } from "./events";
 import { logger } from "./logger";
 import { Store } from "./store";
 import { connectWebSocket, sendFeatureFlagInsights } from "./network.service";
-import { IFeatureFlag, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
+import { IDataStore, IFeatureFlag, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, generateConnectionToken, validateOption } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedTopic, featureFlagInsightFlushTopic, websocketReconnectTopic } from "./constants";
@@ -102,15 +102,30 @@ class Ffc {
     this.bootstrap();
   }
 
-  bootstrap(): void {
-    //this._setDevMode();
-    this._devMode.init();
+  bootstrap(featureFlags?: IFeatureFlag[]): void {
+    this._devMode.init(this._option.devMode);
 
-    // start daa sync
-    this.dataSync().then(() => {
-      this._readyEventEmitted = true;
+    featureFlags = featureFlags || this._option.boostrap;
+    if (featureFlags && featureFlags.length > 0) {
+      const data = {
+        featureFlags: featureFlags.reduce((res, curr) => {
+          const { id, variation, timestamp, variationOptions, isArchived, sendToExperiment } = curr;
+          res[id] = { id, variation, timestamp, variationOptions, isArchived, sendToExperiment };
+
+          return res;
+        }, {} as { [key: string]: IFeatureFlag })
+      };
+
+      this._store.setFullData(data);
       eventHub.emit('ready');
-    });
+      logger.logDebug('bootstrapped with data');
+    } else {
+      // start daa sync
+      this.dataSync().then(() => {
+        this._readyEventEmitted = true;
+        eventHub.emit('ready');
+      });
+    }
   }
 
   async dataSync(): Promise<any>{

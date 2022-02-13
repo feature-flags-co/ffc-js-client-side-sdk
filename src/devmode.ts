@@ -238,7 +238,7 @@ export class DevMode {
     });
   }
 
-  init() {
+  init(activateDevMode: boolean = false) {
     let self = this;
     dispatchDevModeEvent();
 
@@ -256,6 +256,9 @@ export class DevMode {
     if (devModeParam !== null && ['true', 'false'].findIndex(ele => ele === devModeParam.toLocaleLowerCase()) > -1)  {
       localStorage.setItem(DevModeStorageKey, devModeParam);
     }
+
+    // set devmode from the param
+    localStorage.setItem(DevModeStorageKey, `${activateDevMode === true}`);
 
     // if already in dev mode since loading of the page
     let devMode = localStorage.getItem(DevModeStorageKey) || 'false';
