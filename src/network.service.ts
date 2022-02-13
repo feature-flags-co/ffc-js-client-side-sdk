@@ -91,13 +91,13 @@ export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: str
 
   const { userName, email, country, id, customizeProperties } = user;
   const payload = [{
-    featureFlagKeyName: variations[0].id,
     userName,
     email,
     country,
     UserKeyId: id,
     UserCustomizedProperties: customizeProperties,
     userVariations: variations.map(v => ({
+      featureFlagKeyName: v.id,
       sendToExperiment: v.sendToExperiment,
       timestamp: v.timestamp,
       variation: {

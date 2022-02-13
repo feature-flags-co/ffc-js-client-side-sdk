@@ -172,7 +172,7 @@ class Ffc {
     return this._store.getVariation(key) || defaultResult;
   }
 
-  variationBool(key: string, defaultResult: boolean): boolean {
+  boolVariation(key: string, defaultResult: boolean): boolean {
     const variation = this._store.getVariation(key);
     return !!variation ? variation.toLocaleLowerCase() === 'true' : defaultResult;
   }

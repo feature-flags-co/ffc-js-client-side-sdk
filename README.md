@@ -95,7 +95,7 @@ var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
 
 // Syntactic sugar of the variation method, but this method return a boolean value instead of string. Use this method if the options are strings of true or false
 var the defaultValue = true; // or false
-var flagValue = Ffc.variationBool("YOUR_FEATURE_KEY", defaultValue);
+var flagValue = Ffc.boolVariation("YOUR_FEATURE_KEY", defaultValue);
 ```
 
 ### Activate developer mode
