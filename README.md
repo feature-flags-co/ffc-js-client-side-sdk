@@ -77,8 +77,8 @@ All the parameters available in option:
      - it must have the following format:
      ```json
       [{
-        name: "the name of the property",
-        value: "the value of the property"
+        "name": "the name of the property",
+        "value": "the value of the property"
       }]
      ```
 
