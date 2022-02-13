@@ -249,17 +249,17 @@ export class DevMode {
       }
     });
 
+    // set devmode from the param
+    if (activateDevMode !== undefined && activateDevMode !== null) {
+      localStorage.setItem(DevModeStorageKey, `${activateDevMode === true}`);
+    }
+
     // set devmode from query string
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const devModeParam = urlParams.get(DevModeQueryStr);
     if (devModeParam !== null && ['true', 'false'].findIndex(ele => ele === devModeParam.toLocaleLowerCase()) > -1)  {
       localStorage.setItem(DevModeStorageKey, devModeParam);
-    }
-
-    // set devmode from the param
-    if (activateDevMode !== undefined && activateDevMode !== null) {
-      localStorage.setItem(DevModeStorageKey, `${activateDevMode === true}`);
     }
     
     // if already in dev mode since loading of the page
