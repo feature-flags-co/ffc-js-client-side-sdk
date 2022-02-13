@@ -88,25 +88,29 @@ export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: str
     return;
   }
 
-  const { userName, email, country, id, customizeProperties } = user;
-  const payload = [{
-    userName,
-    email,
-    country,
-    UserKeyId: id,
-    UserCustomizedProperties: customizeProperties,
-    userVariations: variations.map(v => ({
-      featureFlagKeyName: v.id,
-      sendToExperiment: v.sendToExperiment,
-      timestamp: v.timestamp,
-      variation: {
-        localId: v.variation.id,
-        variationValue: v.variation.value
-      }
-    }))
-  }];
+  try{
+    const { userName, email, country, id, customizeProperties } = user;
+    const payload = [{
+      userName,
+      email,
+      country,
+      UserKeyId: id,
+      UserCustomizedProperties: customizeProperties,
+      userVariations: variations.map(v => ({
+        featureFlagKeyName: v.id,
+        sendToExperiment: v.sendToExperiment,
+        timestamp: v.timestamp,
+        variation: {
+          localId: v.variation.id,
+          variationValue: v.variation.value
+        }
+      }))
+    }];
 
-  await postData(`${apiBaseUrl}/api/public/analytics/track/feature-flags`, payload, {envSecret: envSecret});
-  logger.logDebug('sendFeatureFlagInsights');
-  logger.logDebug(payload);
+    await postData(`${apiBaseUrl}/api/public/analytics/track/feature-flags`, payload, {envSecret: envSecret});
+    logger.logDebug('sendFeatureFlagInsights');
+    logger.logDebug(payload);
+  }catch(err) {
+    logger.logDebug(err);
+  }
 }
