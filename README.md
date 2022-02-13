@@ -89,16 +89,16 @@ Initializing the client makes a remote request to feature-flags.co, so it may ta
 ### Activate developer mode
 Developer mode is a powerful tool we created to manipulate the feature flags locally instead of modifying them on [feature-flags.co](feature-flags.co). **This will not change the remote values**
 Three ways to activate the developer mode.
-- from query string
+- from query string.
 add this to your url before loading the page: **?devmode=true**
 
-- from browser console
+- from browser console.
 execute this command in the browser console
 ```javascript
   localStorage.setItem('ffcdevmode', true);
 ```
 
-- from the init method
+- from the init method.
 ```javascript
   // define the option with the devMode parameter
   const option = {
@@ -188,7 +188,7 @@ Two methods to get the variation of a feature flag
 // Use this method for all cases
 var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
 
-// Syntactic sugar of the variation method. Use this method if the options are strings of true or false
+// Syntactic sugar of the variation method, but this method return a boolean value instead of string. Use this method if the options are strings of true or false
 var the defaultValue = true; // or false
 var flagValue = Ffc.variationBool("YOUR_FEATURE_KEY", defaultValue);
 ```
