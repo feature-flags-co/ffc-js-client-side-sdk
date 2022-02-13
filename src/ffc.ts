@@ -4,7 +4,7 @@ import { eventHub } from "./events";
 import { logger } from "./logger";
 import { Store } from "./store";
 import { connectWebSocket, sendFeatureFlagInsights } from "./network.service";
-import { IDataStore, IFeatureFlag, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
+import { IFeatureFlag, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, generateConnectionToken, validateOption } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedTopic, featureFlagInsightFlushTopic, websocketReconnectTopic } from "./constants";
@@ -20,7 +20,6 @@ class Ffc {
   private _featureFlagInsightQueue: Queue<IFeatureFlagVariation> = new Queue<IFeatureFlagVariation>(1, featureFlagInsightFlushTopic);
   private _option: IOption = {
     secret: '',
-    devMode: false,
     api: IS_PROD ? 'https://api.feature-flags.co' : 'https://ffc-api-ce2-dev.chinacloudsites.cn',
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
   };
@@ -103,8 +102,6 @@ class Ffc {
   }
 
   bootstrap(featureFlags?: IFeatureFlag[]): void {
-    this._devMode.init(this._option.devMode);
-
     featureFlags = featureFlags || this._option.boostrap;
     if (featureFlags && featureFlags.length > 0) {
       const data = {
@@ -117,12 +114,14 @@ class Ffc {
       };
 
       this._store.setFullData(data);
+      this._devMode.init(this._option.devMode);
       eventHub.emit('ready');
       logger.logDebug('bootstrapped with data');
     } else {
       // start daa sync
       this.dataSync().then(() => {
         this._readyEventEmitted = true;
+        this._devMode.init(this._option.devMode);
         eventHub.emit('ready');
       });
     }
