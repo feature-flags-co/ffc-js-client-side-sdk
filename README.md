@@ -6,9 +6,22 @@ This is the JavaScript client side SDK for the feature management platform [feat
 
 Be aware, this is a client side SDK, it is intended for use in a single-user context, which can be mobile, desktop or embeded applications. This SDK can only be ran in a browser environment, it is not suitable for NodeJs applications, server side SDKs are available in our other repos.
 
-## Main work of this SDK
+This SDK has two main works:
 - Makes feature flags avaible to the client side code
 - Sends feature flags usage, click, pageview and custom events for the insights and A/B/n testing.
+
+## Data synchonization
+We use websocket to make the local data synchronized with the server, and then persist in localStorage. Whenever there is any changes to a feature flag, the changes would be pushed to the SDK, the average synchronization time is less than **100** ms. Be aware the websocket connection can be interrupted by any error or internet interruption, but it would be restored automatically right after the problem is gone.
+
+## Offline mode support
+As all data is stored locally in the localStorage, in the following situations, the SDK would still work when there is temporarily no internet connection:
+- it has already recieved the data from previous conections
+- the Ffc.bootstrap(featureFlags) method is called with all necessary feature flags
+
+In the mean time, the SDK would try to reconnect to the server by an incremental interval, this makes sure that the websocket would be restored when the internet connection is back.
+
+## Evaluation of a feature flag
+After initialization, the SDK has all the feature flags locally and it does not need to request the remote server for any feature flag evaluation. All evaluation is done locally and synchronously, the average evaluation time is about **1** ms.
 
 ## Getting started
 ### Install
