@@ -99,18 +99,18 @@ var flagValue = Ffc.variationBool("YOUR_FEATURE_KEY", defaultValue);
 ```
 
 ### Activate developer mode
-Developer mode is a powerful tool we created to manipulate the feature flags locally instead of modifying them on [feature-flags.co](feature-flags.co). **This will not change the remote values**
-Three ways to activate the developer mode.
-- from query string.
-add this to your url before loading the page: **?devmode=true**
+Developer mode is a powerful tool we created allowing developers to manipulate the feature flags locally instead of modifying them on [feature-flags.co](feature-flags.co). **This will not change the remote values**.
 
-- from browser console.
-execute this command in the browser console
+Three ways to activate the developer mode.
+- From query string.
+ Add this to your url before loading the page: **?devmode=true**
+
+- From browser console. Execute this command in the browser console
 ```javascript
   localStorage.setItem('ffcdevmode', true);
 ```
 
-- from the init method.
+- From the **init** method.
 ```javascript
   // define the option with the devMode parameter
   const option = {
@@ -124,13 +124,13 @@ execute this command in the browser console
 
 ### bootstrap
 If you already have the feature flags available, two ways to pass them to the SDK instead of requesting from the remote.
-- by the **init** method
+- By the **init** method
 ```javascript
   // define the option with the bootstrap parameter
   const option = {
     ...
-    bootstrap = [{
-      id: string, // the keyname
+    bootstrap = [{ // the array should contain all your feature flags
+      id: string, // the feature flag key
       variation: string,
       sendToExperiment: boolean,
       timestamp: number,
@@ -146,10 +146,10 @@ If you already have the feature flags available, two ways to pass them to the SD
   Ffc.init(option);
 ```
 
-- by the **bootstrap** method 
+- By the **bootstrap** method 
 ```javascript
-const featureflags = [{
-  id: string, // the keyname
+const featureflags = [{ // the array should contain all your feature flags
+  id: string, // the feature flag key
   variation: string,
   sendToExperiment: boolean,
   timestamp: number,
