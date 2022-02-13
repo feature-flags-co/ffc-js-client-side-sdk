@@ -114,17 +114,18 @@ class Ffc {
       };
 
       this._store.setFullData(data);
-      this._devMode.init(this._option.devMode);
       eventHub.emit('ready');
-      logger.logDebug('bootstrapped with data');
+      logger.logDebug('bootstrapped with full data');
     } else {
-      // start daa sync
+      // start data sync
       this.dataSync().then(() => {
         this._readyEventEmitted = true;
-        this._devMode.init(this._option.devMode);
+        this._store.isDevMode = !!this._option.devMode;
         eventHub.emit('ready');
       });
     }
+
+    this._devMode.init(this._option.devMode);
   }
 
   async dataSync(): Promise<any>{

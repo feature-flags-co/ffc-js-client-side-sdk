@@ -66,19 +66,18 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
 }
 
 async function postData(url: string = '', data: any = {}, headers: {[key: string]: string} = {}) {
-  // Default options are marked with *
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: Object.assign({
-      'Content-Type': 'application/json'
-    }, headers),
-    body: JSON.stringify(data) // body data type must match "Content-Type" header
-  });
-
   try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: Object.assign({
+        'Content-Type': 'application/json'
+      }, headers),
+      body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+
     return response.status === 200? response.json() : {};
   } catch (err) {
-    logger.logDebug(response);
+    logger.logDebug(err);
     return {};
   }
   

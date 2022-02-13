@@ -53,12 +53,6 @@ export function validateOption(option: IOption): string | null {
     return null;
   }
 
-  export function preloadImage(url)
-  {
-      var img=new Image();
-      img.src=url;
-  }
-
 /******************** draggable begin ************************/
 export function makeElementDraggable(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
