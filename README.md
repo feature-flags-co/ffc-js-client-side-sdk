@@ -86,6 +86,18 @@ The complete list of the available parameters in option:
 #### Initialization delay
 Initializing the client makes a remote request to feature-flags.co, so it may take 100 milliseconds or more before the SDK emits the ready event. If you require feature flag values before rendering the page, we recommend bootstrapping the client. If you bootstrap the client, it will emit the ready event immediately.
 
+### Get the varation value of a feature flag
+Two methods to get the variation of a feature flag
+
+```javascript
+// Use this method for all cases
+var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
+
+// Syntactic sugar of the variation method, but this method return a boolean value instead of string. Use this method if the options are strings of true or false
+var the defaultValue = true; // or false
+var flagValue = Ffc.variationBool("YOUR_FEATURE_KEY", defaultValue);
+```
+
 ### Activate developer mode
 Developer mode is a powerful tool we created to manipulate the feature flags locally instead of modifying them on [feature-flags.co](feature-flags.co). **This will not change the remote values**
 Three ways to activate the developer mode.
@@ -176,21 +188,9 @@ await Ffc.waitUntilReady();
 The SDK only decides initialization has failed if it receives an error response indicating that the environment ID is invalid. If it has trouble connecting to feature-flags.co, it will keep retrying until it succeeds.
 
 ### Set the user after initialization
-
+If the user parameter cannot be passed by the init method, the following method can be used to set the user after initialization.
 ```javascript
   Ffc.identify(user);
-```
-
-### Get the varation value of a feature flag
-Two methods to get the variation of a feature flag
-
-```javascript
-// Use this method for all cases
-var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
-
-// Syntactic sugar of the variation method, but this method return a boolean value instead of string. Use this method if the options are strings of true or false
-var the defaultValue = true; // or false
-var flagValue = Ffc.variationBool("YOUR_FEATURE_KEY", defaultValue);
 ```
 
 ### Subscribe to the changes of feature flag(s)
