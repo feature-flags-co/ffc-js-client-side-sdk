@@ -1,11 +1,12 @@
 # JavaScript client side SDK
 
+
 ## Introduction
 This is the JavaScript client side SDK for the feature management platform [feature-flags.co](feature-flags.co). We will document all the methods available in this SDK, and detail how they work.
 
 Be aware, this is a client side SDK, it is intended for use in a single-user context, which can be mobile, desktop or embeded applications. This SDK can only be ran in a browser environment, it is not suitable for NodeJs applications, server side SDKs are available in our other repos.
 
-## Main work of this SDK:
+## Main work of this SDK
 - Makes feature flags avaible to the client side code
 - Sends feature flags usage, click, pageview and custom events for the insights and A/B/n testing.
 
@@ -13,7 +14,7 @@ Be aware, this is a client side SDK, it is intended for use in a single-user con
 ### Install
 npm
   ```
-  npm install ffc-js-client-sdk --save
+  npm install ffc-js-client-sdk
   ```
 
 yarn
@@ -23,7 +24,7 @@ yarn add ffc-js-client-sdk
 
 browser (you can also self host the SDK alongside your other JavaScript code in production environment)
 ```
-<script data-ffc-client='env secret of the environment' src="https://assets.feature-flags.co/sdks/ffc-sdk.js" ></script>
+<script src="https://assets.feature-flags.co/sdks/ffc-sdk.js" ></script>
 ```
 
 To import the SDK:
@@ -84,6 +85,29 @@ All the parameters available in option:
 
 #### Initialization delay
 Initializing the client makes a remote request to feature-flags.co, so it may take 100 milliseconds or more before the SDK emits the ready event. If you require feature flag values before rendering the page, we recommend bootstrapping the client. If you bootstrap the client, it will emit the ready event immediately.
+### Activate developer mode
+Developer mode is a powerful tool we created to manipulate the feature flags locally instead of modifying them on [feature-flags.co](feature-flags.co).
+Three ways to activate the developer mode.
+- from query string
+add this to your url before loading the page: **?devmode=true**
+
+- from browser console
+execute this command in the browser console
+```javascript
+  localStorage.setItem('ffcdevmode', true);
+```
+
+- from the init method
+```javascript
+  // define the option with the devMode parameter
+  const option = {
+    ...
+    devMode: true,
+    ...
+  }
+
+  Ffc.init(option);
+```
 
 ### bootstrap
 If you already have the feature flags available, two ways to pass them to the SDK instead of requesting from the remote.
@@ -167,4 +191,5 @@ var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
 var the defaultValue = true; // or false
 var flagValue = Ffc.variationBool("YOUR_FEATURE_KEY", defaultValue);
 ```
+
 
