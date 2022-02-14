@@ -14,7 +14,7 @@ class DevModeEventInit {
   oldValue: any;
 }
 
-function createFfEditor(featureFlags: {[key: string]: IFeatureFlag}) {
+function createFfEditor(featureFlags: { [key: string]: IFeatureFlag }) {
   const query = (<HTMLInputElement>document.getElementById('ff-editor-search-query'))?.value?.trim() || '';
   let ffEditorContainer = document.getElementById('ffc-ff-editor-container');
 
@@ -79,7 +79,7 @@ function createFfEditor(featureFlags: {[key: string]: IFeatureFlag}) {
     const results = Object.keys(featureFlags).filter(key => key.indexOf(query.toLocaleLowerCase()) !== -1).reduce((res, curr) => {
       res[curr] = featureFlags[curr];
       return res;
-    }, {}) as {[key: string]: IFeatureFlag};
+    }, {}) as { [key: string]: IFeatureFlag };
 
     ffEditorContainer.innerHTML = editorTemplate.replace(/#{{FF}}/ig, ffListHtml(results));
   } else {
@@ -115,20 +115,20 @@ function createFfEditor(featureFlags: {[key: string]: IFeatureFlag}) {
         newValue: value
       };
 
-      eventHub.emit(`devmode_ff_${FeatureFlagUpdateOperation.update}`, {[id]: data});
+      eventHub.emit(`devmode_ff_${FeatureFlagUpdateOperation.update}`, { [id]: data });
     });
   });
 
   document.body.appendChild(ffEditorContainer);
   makeElementDraggable(ffEditorContainer);
 }
-  
-function ffListHtml(featureFlags: {[key: string]: IFeatureFlag}): string {
+
+function ffListHtml(featureFlags: { [key: string]: IFeatureFlag }): string {
   return Object.keys(featureFlags).map(key => {
     const ff = featureFlags[key];
 
-    const optionsHtml = ff.variationOptions.map((item) => `<option ${item.value === ff.variation ? 'selected': ''} value="${item.value}">${item.value}</option>`).join('');
-    
+    const optionsHtml = ff.variationOptions.map((item) => `<option ${item.value === ff.variation ? 'selected' : ''} value="${item.value}">${item.value}</option>`).join('');
+
     return `
       <ul style="list-style-type: none;margin: 0;padding: 0;">
         <li style="display:flex;justify-content:space-between;border-bottom: #f0f0f0 1px solid;padding: 5px 5px;">
@@ -141,7 +141,7 @@ function ffListHtml(featureFlags: {[key: string]: IFeatureFlag}): string {
   }).join('');
 }
 
-function enableDevMode(featureFlags: {[key: string]: IFeatureFlag}) {    
+function enableDevMode(featureFlags: { [key: string]: IFeatureFlag }) {
   // display dev mode icon
   const devModeContainer = document.createElement("div");
   devModeContainer.id = 'ffc-devmode-container';
@@ -192,32 +192,32 @@ function enableDevMode(featureFlags: {[key: string]: IFeatureFlag}) {
   //makeElementDraggable(devModeContainer);
 }
 
-function disableDevMode(){
+function disableDevMode() {
   document.getElementById("ffc-devmode-container")?.remove();
   document.getElementById("ffc-ff-editor-container")?.remove();
 }
 
-function dispatchDevModeEvent () {
+function dispatchDevModeEvent() {
   const setItem = localStorage.setItem;
   localStorage.setItem = function (key: string, val: string) {
     if (key === DevModeStorageKey) {
       const devModeStr = localStorage.getItem(DevModeStorageKey) || 'false';
       if (devModeStr !== `${val}`) {
-        let event = new CustomEvent<DevModeEventInit>(DevModeEventName, { detail: { newValue: `${val}`, oldValue: devModeStr, key}});
+        let event = new CustomEvent<DevModeEventInit>(DevModeEventName, { detail: { newValue: `${val}`, oldValue: devModeStr, key } });
         window.dispatchEvent(event);
       }
     }
-    
+
     const argumentsTyped: any = arguments;
     setItem.apply(this, argumentsTyped);
   }
 };
 
-function onDevModeChange (store: Store, oldValue: string, newValue: string) {
+function onDevModeChange(store: Store, oldValue: string, newValue: string) {
   if (oldValue !== newValue) {
     if (newValue === 'true') {
       // make sure the document.body exists before enabling dev mode
-      setTimeout(()=> {
+      setTimeout(() => {
         store.isDevMode = true;
         enableDevMode(store.getFeatureFlags());
       }, 0);
@@ -232,7 +232,7 @@ function onDevModeChange (store: Store, oldValue: string, newValue: string) {
 }
 
 export class DevMode {
-  constructor(private store: Store){
+  constructor(private store: Store) {
     eventHub.subscribe(`devmode_ff_${FeatureFlagUpdateOperation.devDataCreated}`, () => {
       createFfEditor(this.store.getFeatureFlags());
     });
@@ -258,10 +258,10 @@ export class DevMode {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const devModeParam = urlParams.get(DevModeQueryStr);
-    if (devModeParam !== null && ['true', 'false'].findIndex(ele => ele === devModeParam.toLocaleLowerCase()) > -1)  {
+    if (devModeParam !== null && ['true', 'false'].findIndex(ele => ele === devModeParam.toLocaleLowerCase()) > -1) {
       localStorage.setItem(DevModeStorageKey, devModeParam);
     }
-    
+
     // if already in dev mode since loading of the page
     let devMode = localStorage.getItem(DevModeStorageKey) || 'false';
     if (devMode === 'true') {
@@ -271,6 +271,6 @@ export class DevMode {
         enableDevMode(this.store.getFeatureFlags());
       }, 0);
     }
-  } 
+  }
 }
 

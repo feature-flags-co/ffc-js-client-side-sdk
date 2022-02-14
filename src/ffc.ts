@@ -24,7 +24,7 @@ class Ffc {
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
   };
 
-  constructor(){
+  constructor() {
     this._devMode = new DevMode(this._store);
     this._readyPromise = new Promise<void>((resolve, reject) => {
       this.on('ready', () => {
@@ -61,26 +61,26 @@ class Ffc {
     return this._readyPromise;
   }
 
-  init(option: IOption){
+  init(option: IOption) {
     const validateOptionResult = validateOption(option);
     if (validateOptionResult !== null) {
       console.log(validateOptionResult);
       return;
     }
 
-    this._option = Object.assign({}, this._option, option, {api: (option.api || this._option.api)?.replace(/\/$/, '')});
+    this._option = Object.assign({}, this._option, option, { api: (option.api || this._option.api)?.replace(/\/$/, '') });
 
     if (!option.user) {
       let sessionId = ffcguid();
       var c_name = 'JSESSIONID';
       if (document.cookie.length > 0) {
-          let c_start = document.cookie.indexOf(c_name + "=")
-          if (c_start != -1) {
-              c_start = c_start + c_name.length + 1
-              let c_end = document.cookie.indexOf(";", c_start)
-              if (c_end == -1) c_end = document.cookie.length
-              sessionId = unescape(document.cookie.substring(c_start, c_end));
-          }
+        let c_start = document.cookie.indexOf(c_name + "=")
+        if (c_start != -1) {
+          c_start = c_start + c_name.length + 1
+          let c_end = document.cookie.indexOf(";", c_start)
+          if (c_end == -1) c_end = document.cookie.length
+          sessionId = unescape(document.cookie.substring(c_start, c_end));
+        }
       }
 
       this.identify({
@@ -93,7 +93,7 @@ class Ffc {
     }
   }
 
-  identify (user: IUser): void {
+  identify(user: IUser): void {
     this._option.user = Object.assign({}, this._option.user, user);
 
     this._store.userId = this._option.user.id;
@@ -116,19 +116,21 @@ class Ffc {
       this._store.setFullData(data);
       eventHub.emit('ready');
       logger.logDebug('bootstrapped with full data');
-    } else {
-      // start data sync
-      this.dataSync().then(() => {
-        this._readyEventEmitted = true;
-        this._store.isDevMode = !!this._option.devMode;
-        eventHub.emit('ready');
-      });
     }
+
+    // start data sync
+    this.dataSync().then(() => {
+      this._store.isDevMode = !!this._option.devMode;
+      if (!this._readyEventEmitted) {
+        this._readyEventEmitted = true;
+        eventHub.emit('ready');
+      }
+    });
 
     this._devMode.init(this._option.devMode);
   }
 
-  async dataSync(): Promise<any>{
+  async dataSync(): Promise<any> {
     return new Promise<void>((resolve, reject) => {
       const serverUrl: any = this._option.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this._option.secret)}`;
       const timestamp = Math.max(...Object.values(this._store.getFeatureFlags()).map(ff => ff.timestamp), 0);
@@ -144,7 +146,7 @@ class Ffc {
                 featureFlags: featureFlags.reduce((res, curr) => {
                   const { id, variation, timestamp, variationOptions, isArchived, sendToExperiment } = curr;
                   res[id] = { id, variation, timestamp, variationOptions, isArchived, sendToExperiment };
-  
+
                   return res;
                 }, {} as { [key: string]: IFeatureFlag })
               };
@@ -153,10 +155,10 @@ class Ffc {
                 this._store.setFullData(data);
                 logger.logDebug('synchonized with full data');
               } else {
-                  this._store.updateBulkFromRemote(data);
-                  logger.logDebug('synchonized with partial data');
+                this._store.updateBulkFromRemote(data);
+                logger.logDebug('synchonized with partial data');
               }
-              
+
               break;
             default:
               logger.logDebug('invalid stream event type: ' + message.eventType);

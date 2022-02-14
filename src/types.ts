@@ -1,13 +1,13 @@
 export interface IOption {
-    secret: string,
-    anonymous?: boolean,
-    boostrap?: IFeatureFlag[],
-    devMode?: boolean,
-    api?: string,
-    appType?: string,
-    user?: IUser
-  }
-  
+  secret: string,
+  anonymous?: boolean,
+  boostrap?: IFeatureFlag[],
+  devMode?: boolean,
+  api?: string,
+  appType?: string,
+  user?: IUser
+}
+
 export interface IUser {
   userName: string,
   email: string,

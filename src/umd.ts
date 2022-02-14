@@ -4,8 +4,8 @@
 const html = document.querySelector('html');
 const waittime = 500;
 if (html) {
-    html.style.visibility = 'hidden';
-    setTimeout(() => html.style.visibility = 'visible', waittime);
+  html.style.visibility = 'hidden';
+  setTimeout(() => html.style.visibility = 'visible', waittime);
 }
 
 import Ffc from './ffc';

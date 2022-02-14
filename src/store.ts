@@ -19,12 +19,12 @@ export class Store {
       const updatedFfs = Object.keys(data).map(key => {
         const changes = data[key];
         const ff = this._store.featureFlags[key];
-        const updatedFf = Object.assign({}, ff, {variation: changes['newValue'], version: Date.now()});
+        const updatedFf = Object.assign({}, ff, { variation: changes['newValue'], version: Date.now() });
         return updatedFf;
       }).reduce((res, curr) => {
-        res.featureFlags[curr.id] = Object.assign({}, curr, { timestamp: Date.now()});
+        res.featureFlags[curr.id] = Object.assign({}, curr, { timestamp: Date.now() });
         return res;
-      }, {featureFlags: {}});
+      }, { featureFlags: {} });
 
       this.updateBulk(updatedFfs);
     });
@@ -69,7 +69,7 @@ export class Store {
     }
   }
 
-  getFeatureFlags(): {[key: string]: IFeatureFlag}{
+  getFeatureFlags(): { [key: string]: IFeatureFlag } {
     return this._store.featureFlags;
   }
 
@@ -83,7 +83,7 @@ export class Store {
     }
   }
 
-  updateBulkFromRemote(data: IDataStore){
+  updateBulkFromRemote(data: IDataStore) {
     if (!this._isDevMode) {
       this.updateBulk(data);
       return;
@@ -92,7 +92,7 @@ export class Store {
     const storageKey = `${DataStoreStorageKey}_${this._userId}`;
     let dataStoreStr = localStorage.getItem(storageKey);
     let store: IDataStore;
-    
+
     try {
       if (dataStoreStr && dataStoreStr.trim().length > 0) {
         store = JSON.parse(dataStoreStr);
@@ -102,7 +102,7 @@ export class Store {
         };
       }
 
-      const { featureFlags } = data;    
+      const { featureFlags } = data;
 
       Object.keys(featureFlags).forEach(id => {
         const remoteFf = featureFlags[id];
@@ -112,9 +112,9 @@ export class Store {
           store.featureFlags[remoteFf.id] = Object.assign({}, remoteFf);
         }
       });
-      
+
       this._dumpToStorage(store);
-    } catch(err) {
+    } catch (err) {
       logger.logDebug('error while loading local data store: ' + err);
     }
   }
@@ -129,19 +129,19 @@ export class Store {
 
       if (!localFf || remoteFf.timestamp > localFf.timestamp) {
         this._store.featureFlags[remoteFf.id] = Object.assign({}, remoteFf);
-          updatedFeatureFlags.push({
+        updatedFeatureFlags.push({
+          id: remoteFf.id,
+          operation: FeatureFlagUpdateOperation.update,
+          data: {
             id: remoteFf.id,
-            operation: FeatureFlagUpdateOperation.update,
-            data: {
-              id: remoteFf.id,
-              oldValue: localFf?.variation,
-              newValue: remoteFf.variation
-            }
-          });
+            oldValue: localFf?.variation,
+            newValue: remoteFf.variation
+          }
+        });
       }
     });
 
-    updatedFeatureFlags.forEach(({id, operation, data}) => {
+    updatedFeatureFlags.forEach(({ id, operation, data }) => {
       eventHub.emit(`ff_${operation}:${data.id}`, data);
     });
 
@@ -188,28 +188,28 @@ export class Store {
           }).map(key => {
             const storageFf = storageData.featureFlags[key];
             const ff = this._store.featureFlags[key];
-  
+
             return {
               id: key,
               operation: FeatureFlagUpdateOperation.update,
               data: {
-                  id: key,
-                  oldValue: ff?.variation,
-                  newValue: storageFf.variation
+                id: key,
+                oldValue: ff?.variation,
+                newValue: storageFf.variation
               }
             }
           });
-  
+
           this._store = storageData;
-  
-          updatedFeatureFlags.forEach(({id, operation, data}) => {
+
+          updatedFeatureFlags.forEach(({ id, operation, data }) => {
             eventHub.emit(`ff_${operation}:${data.id}`, data);
           });
-  
+
           eventHub.emit(`ff_${FeatureFlagUpdateOperation.update}`, updatedFeatureFlags.reduce((res, curr) => {
             const { id, oldValue, newValue } = curr.data;
             res[id] = res[id] || { id, oldValue, newValue };
-  
+
             return res;
           }, {}));
         } else {
@@ -225,7 +225,7 @@ export class Store {
         this._dumpToStorage();
       }
 
-    } catch(err) {
+    } catch (err) {
       logger.logDebug('error while loading local data store: ' + err);
     }
   }

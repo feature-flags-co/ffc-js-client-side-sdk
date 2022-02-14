@@ -2,7 +2,7 @@ import { eventHub } from "./events";
 
 export class Queue<T> {
     private queue: T[];
-    constructor(private flushLimit: number, private arriveflushLimitTopic: string){
+    constructor(private flushLimit: number, private arriveflushLimitTopic: string) {
         this.queue = [];
     }
 

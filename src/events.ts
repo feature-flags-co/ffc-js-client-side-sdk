@@ -1,7 +1,7 @@
 interface Events {
-    [key: string]: Function[];
+  [key: string]: Function[];
 }
-  
+
 class EventEmitter {
   public events: Events;
   constructor(events?: Events) {
@@ -12,7 +12,7 @@ class EventEmitter {
     (this.events[name] || (this.events[name] = [])).push(cb);
 
     return {
-    unsubscribe: () =>
+      unsubscribe: () =>
         this.events[name] && this.events[name].splice(this.events[name].indexOf(cb) >>> 0, 1)
     };
   }

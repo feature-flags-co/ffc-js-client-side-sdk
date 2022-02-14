@@ -10,7 +10,7 @@ const debugModeParam = urlParams.get(debugModeQueryStr);
 export const logger = {
     logDebug(...args) {
         if (debugModeParam === 'true' || !IS_PROD) {
-           console.log(...args);
+            console.log(...args);
         }
     },
 

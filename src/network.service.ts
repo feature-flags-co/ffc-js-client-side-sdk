@@ -4,14 +4,14 @@ import { logger } from "./logger";
 import { Store } from "./store";
 import { IFeatureFlagVariation, IStreamResponse, IUser } from "./types";
 
-const socketConnectionIntervals = [250,500,1000,2000,4000,8000,10000,30000];
+const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
 let retryCounter = 0;
 
-export function connectWebSocket(url: string, user: IUser, timestamp: number, onMessage: (response: IStreamResponse) => any){
+export function connectWebSocket(url: string, user: IUser, timestamp: number, onMessage: (response: IStreamResponse) => any) {
   // Create WebSocket connection.
   const startTime = Date.now();
   const socket = new WebSocket(url);
-  
+
   // Connection opened
   socket.addEventListener('open', function (event) {
     retryCounter = 0;
@@ -19,18 +19,18 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
     logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
     const { userName, email, country, id, customizeProperties } = user;
     const payload = {
-      messageType: 'data-sync', 
+      messageType: 'data-sync',
       data: {
-          user: {
-            userName,
-            email,
-            country,
-            userKeyId: id,
-            customizeProperties,
-          }, 
-          timestamp
+        user: {
+          userName,
+          email,
+          country,
+          userKeyId: id,
+          customizeProperties,
+        },
+        timestamp
       }
-   };
+    };
 
     socket.send(JSON.stringify(payload));
   });
@@ -58,14 +58,14 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
     const message = JSON.parse(event.data);
     if (message.messageType === 'data-sync') {
       onMessage(message.data);
-      if (message.data.featureFlags.length > 0){
+      if (message.data.featureFlags.length > 0) {
         logger.logDebug('socket push update time(ms): ', Date.now() - message.data.featureFlags[0].timestamp);
       }
     }
   });
 }
 
-async function postData(url: string = '', data: any = {}, headers: {[key: string]: string} = {}) {
+async function postData(url: string = '', data: any = {}, headers: { [key: string]: string } = {}) {
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -75,12 +75,12 @@ async function postData(url: string = '', data: any = {}, headers: {[key: string
       body: JSON.stringify(data) // body data type must match "Content-Type" header
     });
 
-    return response.status === 200? response.json() : {};
+    return response.status === 200 ? response.json() : {};
   } catch (err) {
     logger.logDebug(err);
     return {};
   }
-  
+
 }
 
 export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: string, user: IUser, variations: IFeatureFlagVariation[]) {
@@ -88,7 +88,7 @@ export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: str
     return;
   }
 
-  try{
+  try {
     const { userName, email, country, id, customizeProperties } = user;
     const payload = [{
       userName,
@@ -107,10 +107,10 @@ export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: str
       }))
     }];
 
-    await postData(`${apiBaseUrl}/api/public/analytics/track/feature-flags`, payload, {envSecret: envSecret});
+    await postData(`${apiBaseUrl}/api/public/analytics/track/feature-flags`, payload, { envSecret: envSecret });
     logger.logDebug('sendFeatureFlagInsights');
     logger.logDebug(payload);
-  }catch(err) {
+  } catch (err) {
     logger.logDebug(err);
   }
 }
