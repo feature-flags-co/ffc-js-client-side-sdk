@@ -4,7 +4,6 @@
   "description": "https://github.com/feature-flags-co/ffc-js-client-side-sdk",
   "main": "esm/ffc.js",
   "scripts": {
-    "ffc-code-refs": "code-refs",
     "build": "rimraf umd && rimraf esm && tsc && webpack --mode production",
     "watch": "rimraf umd && webpack --watch",
     "lint": "gts lint",

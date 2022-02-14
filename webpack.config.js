@@ -1,8 +1,9 @@
 const path = require('path');
+const package = require('./package.json');
 
-module.exports = {
+const baseConfig = {
   entry: {
-    'ffc-sdk': './src/umd.ts'
+    'ffc': './src/umd.ts'
   },
   devtool: 'source-map',
   module: {
@@ -19,7 +20,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'umd'),
-    filename: '[name].js',
+    filename: `[name]-${package.version}.js`,
     libraryTarget: 'umd',
     //library: 'FFCJsClient',
     umdNamedDefine: true,
@@ -30,3 +31,30 @@ module.exports = {
     minimize: true
   },
 };
+
+const configWithVersion = {
+  ...baseConfig, output: {
+    path: path.resolve(__dirname, 'umd'),
+    filename: `[name]-${package.version}.js`,
+    libraryTarget: 'umd',
+    umdNamedDefine: true,
+    // prevent error: `Uncaught ReferenceError: self is not define`
+    globalObject: 'this',
+  }
+};
+
+const configWithoutVersion = {
+  ...baseConfig, output: {
+    path: path.resolve(__dirname, 'umd'),
+    filename: `[name].js`,
+    libraryTarget: 'umd',
+    umdNamedDefine: true,
+    // prevent error: `Uncaught ReferenceError: self is not define`
+    globalObject: 'this',
+  }
+};
+
+module.exports = [
+  configWithVersion,
+  configWithoutVersion
+];
