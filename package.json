@@ -2,7 +2,7 @@
   "name": "ffc-js-client-sdk",
   "version": "2.0.0",
   "description": "https://github.com/feature-flags-co/ffc-js-client-side-sdk",
-  "main": "index.js",
+  "main": "esm/ffc.js",
   "scripts": {
     "ffc-code-refs": "code-refs",
     "build": "tsc && webpack --mode production",

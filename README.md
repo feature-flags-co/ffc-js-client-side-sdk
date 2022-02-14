@@ -43,10 +43,13 @@ browser (you can also self host the SDK alongside your other JavaScript code in 
 To import the SDK:
 ```javascript
 // Using ES2015 imports
-import { Ffc } from 'ffc-js-client-sdk/esm';
+import Ffc from 'ffc-js-client-sdk';
 
 // Using TypeScript imports
-import { Ffc } from 'ffc-js-client-sdk/esm';
+import Ffc from 'ffc-js-client-sdk';
+
+// Using react imports
+import Ffc from 'ffc-js-client-sdk';
 ```
 
 If using typescipt and seeing the following error:
