@@ -1,5 +1,4 @@
 const path = require('path');
-const { CodeRefsPlugin }  = require('ffc-code-refs-webpack-plugin');
 
 module.exports = {
   entry: {
