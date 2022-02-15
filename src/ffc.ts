@@ -22,6 +22,7 @@ class Ffc {
     secret: '',
     api: IS_PROD ? 'https://api.feature-flags.co' : 'https://ffc-api-ce2-dev.chinacloudsites.cn',
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
+    appType: 'JavaScript'
   };
 
   constructor() {

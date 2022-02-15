@@ -1,3 +1,4 @@
+import { ICustomEvent } from "./autocapture/types";
 import { websocketReconnectTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
@@ -109,6 +110,30 @@ export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: str
 
     await postData(`${apiBaseUrl}/api/public/analytics/track/feature-flags`, payload, { envSecret: envSecret });
     logger.logDebug('sendFeatureFlagInsights');
+    logger.logDebug(payload);
+  } catch (err) {
+    logger.logDebug(err);
+  }
+}
+
+export async function track(apiBaseUrl: string, envSecret: string, appType: string, user: IUser, data: ICustomEvent[]): Promise<void> {
+  try {
+    const payload = JSON.stringify(data.map(d => Object.assign({}, {
+      secret: envSecret,
+      route: location.pathname,
+      numericValue: 1,
+      appType: appType,
+      user: {
+        fFUserName: user.userName,
+        fFUserEmail: user.email,
+        fFUserCountry: user.country,
+        fFUserKeyId: user.id,
+        fFUserCustomizedProperties: user.customizeProperties
+      }
+    }, d)));
+
+    await postData(`${apiBaseUrl}//ExperimentsDataReceiver/PushData`, payload, { envSecret: envSecret });
+    logger.logDebug('track');
     logger.logDebug(payload);
   } catch (err) {
     logger.logDebug(err);
