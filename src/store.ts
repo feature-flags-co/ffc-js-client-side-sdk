@@ -61,12 +61,13 @@ export class Store {
   }
 
   setFullData(data: IDataStore) {
-    if (this._isDevMode) {
-      // do nothing
-    } else {
-      this._store = Object.assign({}, data);
-      this._dumpToStorage();
+    if (!this._isDevMode) {
+      this._store = {
+        featureFlags: {} as { [key: string]: IFeatureFlag }
+      };
     }
+      
+    this.updateBulkFromRemote(data);
   }
 
   getFeatureFlags(): { [key: string]: IFeatureFlag } {
@@ -141,6 +142,11 @@ export class Store {
       }
     });
 
+    this._emitUpdateEvents(updatedFeatureFlags);
+    this._dumpToStorage();
+  }
+
+  private _emitUpdateEvents(updatedFeatureFlags: any[]): void {
     updatedFeatureFlags.forEach(({ id, operation, data }) => {
       eventHub.emit(`ff_${operation}:${data.id}`, data);
     });
@@ -151,8 +157,6 @@ export class Store {
 
       return res;
     }, {}));
-
-    this._dumpToStorage();
   }
 
   private _dumpToStorage(store?: IDataStore): void {

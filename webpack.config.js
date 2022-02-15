@@ -3,7 +3,7 @@ const package = require('./package.json');
 
 const baseConfig = {
   entry: {
-    'ffc': './src/umd.ts'
+    'ffc-sdk': './src/umd.ts'
   },
   devtool: 'source-map',
   module: {
