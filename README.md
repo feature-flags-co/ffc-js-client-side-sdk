@@ -82,7 +82,7 @@ The complete list of the available parameters in option:
 - **secret**: the client side secret of your environment. **mandatory**
 - **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be set later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
 - **boostrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
-- **enableDataSync**: false if you do not want to sync data with remote server, in this case feature flags must be passed to **bootstrap** in option or when call the method **bootstrap**. The default value is true. **not mandatory** 
+- **enableDataSync**: false if you do not want to sync data with remote server, in this case feature flags must be set to **bootstrap** option or be passed to the method **bootstrap**. The default value is true. **not mandatory** 
 - **devMode**: true if you want the developer mode to be activated after initiation of the SDK, this will add an button(icon) on the bottom right of the screen, which allows you to manipulate all the feature flags locally during development. It can also be activated after initialization by a commande in the browser console or a querystring in your url. **Be aware this would not activate developer mode if devModePassword is setted**. The default value is false. **not mandatory**
 - **devModePassword**: if setted, the developer mode can only be activated by calling the method **activateDevMode** on Ffc and the parameter **devMode would be ignored**. **not mandatory** 
 - **api**: the API url of the server, set it only if you are self hosting the back-end. **not mandatory**
@@ -190,7 +190,7 @@ const featureflags = [{ // the array should contain all your feature flags
 Ffc.bootstrap(featureflags);
 ```
 
-**If you want to disable the synchronization with remote server, set enableDataSync to false in option**. In this case, bootstrap option must be set or bootstrap method must be called.
+**If you want to disable the synchronization with remote server, set enableDataSync to false in option**. In this case, bootstrap option must be set or bootstrap method must be called with feature flags.
 
 To find out when the client is ready, you can use one of two mechanisms: events or promises.
 
