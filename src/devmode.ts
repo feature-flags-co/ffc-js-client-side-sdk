@@ -283,14 +283,18 @@ export class DevMode {
 
   activateDevMode(password?: string): void {
     if(!this.password || this.password === password){
-      this.store.isDevMode = true;
       localStorage.setItem(devModeStorageKey, `${true}`);
-      enableDevMode(this.store);
+      onDevModeChange(this.store, '', 'true');
     }
   }
 
   openEditor() {
     document.getElementById(devModeBtnId)?.click();
+  }
+
+  quit(){
+    onDevModeChange(this.store, '', 'false');
+    localStorage.setItem(devModeStorageKey, `${false}`);
   }
 }
 

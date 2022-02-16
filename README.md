@@ -82,6 +82,7 @@ The complete list of the available parameters in option:
 - **secret**: the client side secret of your environment. **mandatory**
 - **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be set later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
 - **boostrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
+- **enableDataSync**: false if you do not want to sync data with remote server, in this case feature flags must be passed to **bootstrap** in option or when call the method **bootstrap**. The default value is true. **not mandatory** 
 - **devMode**: true if you want the developer mode to be activated after initiation of the SDK, this will add an button(icon) on the bottom right of the screen, which allows you to manipulate all the feature flags locally during development. It can also be activated after initialization by a commande in the browser console or a querystring in your url. **Be aware this would not activate developer mode if devModePassword is setted**. The default value is false. **not mandatory**
 - **devModePassword**: if setted, the developer mode can only be activated by calling the method **activateDevMode** on Ffc and the parameter **devMode would be ignored**. **not mandatory** 
 - **api**: the API url of the server, set it only if you are self hosting the back-end. **not mandatory**
@@ -123,6 +124,8 @@ If **devModePassword** is set in option, the only way to activate developer mode
 Ffc.activateDevMode('PASSWORD'); // This will activate the developer mode, you should be able to see an icon on bottom right of the screen. PASSWORD should be the same as the value passed to option
 
 Ffc.openDevModeEditor(); // The method will open the developer mode editor, or you can just click on the developer mode icon
+
+Ffc.quitDevMode(); // call this method to quit developer mode
 ```
 
 Otherwise, if **devModePassword** is not set, we have three ways to activate the developer mode.
@@ -131,7 +134,7 @@ Otherwise, if **devModePassword** is not set, we have three ways to activate the
 
 - From browser console. Execute this command in the browser console
 ```javascript
-  localStorage.setItem('ffcdevmode', true);
+  activateDevMode('PASSWORD'); // PASSWORD is optional depending on your setting in option
 ```
 
 - From the **init** method.
@@ -187,6 +190,8 @@ const featureflags = [{ // the array should contain all your feature flags
 Ffc.bootstrap(featureflags);
 ```
 
+**If you want to disable the synchronization with remote server, set enableDataSync to false in option**. In this case, bootstrap option must be set or bootstrap method must be called.
+
 To find out when the client is ready, you can use one of two mechanisms: events or promises.
 
 The client object can emit JavaScript events. It emits a ready event when it receives initial flag values from feature-flags.co. You can listen for this event to determine when the client is ready to evaluate flags.
@@ -207,7 +212,7 @@ Ffc.waitUntilReady().then((data) => {
   // initialization succeeded, flag values are now available
 });
 // or, with await:
-await Ffc.waitUntilReady();
+const featureFlags = await Ffc.waitUntilReady();
 // initialization succeeded, flag values are now available
 ```
 

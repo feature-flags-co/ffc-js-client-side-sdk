@@ -48,6 +48,7 @@ class Ffc {
     secret: '',
     api: IS_PROD ? 'https://api.feature-flags.co' : 'https://ffc-api-ce2-dev.chinacloudsites.cn',
     devModePassword: '',
+    enableDataSync: true,
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
   };
 
@@ -116,6 +117,10 @@ class Ffc {
     this._devMode.openEditor();
   }
 
+  quitDevMode() {
+    this._devMode.quit();
+  }
+
   logout(): void {
     const anonymousUser = createorGetAnonymousUser();
     this.identify(anonymousUser);
@@ -138,15 +143,17 @@ class Ffc {
       logger.logDebug('bootstrapped with full data');
     }
 
-    // start data sync
-    this.dataSync().then(() => {
-      this._store.isDevMode = !!this._store.isDevMode;
-      if (!this._readyEventEmitted) {
-        this._readyEventEmitted = true;
-        eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
-      }
-    });
-
+    if (this._option.enableDataSync) {
+      // start data sync
+      this.dataSync().then(() => {
+        this._store.isDevMode = !!this._store.isDevMode;
+        if (!this._readyEventEmitted) {
+          this._readyEventEmitted = true;
+          eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
+        }
+      });
+    }
+    
     this._devMode.init(this._option.devModePassword || '', this._option.devMode);
   }
 
@@ -201,5 +208,8 @@ class Ffc {
   }
 }
 
-export default new Ffc();
+const ffc = new Ffc();
+window['activateFfcDevMode'] = (password?: string) => ffc.activateDevMode(password);
+
+export default ffc;
 

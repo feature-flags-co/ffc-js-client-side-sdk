@@ -6,7 +6,8 @@ export interface IOption {
   devModePassword?: string,
   api?: string,
   appType?: string,
-  user?: IUser
+  user?: IUser,
+  enableDataSync?: boolean
 }
 
 export interface IUser {
