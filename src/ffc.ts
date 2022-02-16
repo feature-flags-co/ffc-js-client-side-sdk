@@ -140,7 +140,7 @@ class Ffc {
 
     // start data sync
     this.dataSync().then(() => {
-      this._store.isDevMode = !!this._option.devMode;
+      this._store.isDevMode = !!this._store.isDevMode;
       if (!this._readyEventEmitted) {
         this._readyEventEmitted = true;
         eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));

@@ -46,6 +46,10 @@ export class Store {
     this._loadFromStorage();
   }
 
+  get isDevMode() {
+    return this._isDevMode;
+  }
+
   getVariation(key: string): string {
     const featureFlag = this._store.featureFlags[key];
     if (!!featureFlag) {
@@ -175,50 +179,46 @@ export class Store {
       let dataStoreStr = localStorage.getItem(storageKey);
 
       let shouldDumpToStorage = false;
-      if (this._isDevMode && dataStoreStr === null) {
-        shouldDumpToStorage = true;
-        dataStoreStr = localStorage.getItem(`${DataStoreStorageKey}_${this._userId}`);
+      if (this._isDevMode) {
+        try {
+          const devData = JSON.parse(dataStoreStr!);
+
+          if (devData === null || Object.keys(devData.featureFlags).length === 0) {
+            shouldDumpToStorage = true;
+            dataStoreStr = localStorage.getItem(`${DataStoreStorageKey}_${this._userId}`);
+          }
+        } catch (err) {
+          shouldDumpToStorage = true;
+          dataStoreStr = localStorage.getItem(`${DataStoreStorageKey}_${this._userId}`);
+        }
       }
 
       if (dataStoreStr && dataStoreStr.trim().length > 0) {
         // compare _store and dataStoreStr data and send notification if different
         const storageData: IDataStore = JSON.parse(dataStoreStr);
 
-        if (Object.keys(this._store.featureFlags).length > 0) {
-          const updatedFeatureFlags = Object.keys(storageData.featureFlags).filter(key => {
-            const storageFf = storageData.featureFlags[key];
-            const ff = this._store.featureFlags[key];
-            return !ff || storageFf.variation !== ff.variation;
-          }).map(key => {
-            const storageFf = storageData.featureFlags[key];
-            const ff = this._store.featureFlags[key];
+        const updatedFeatureFlags = Object.keys(storageData.featureFlags).filter(key => {
+          const storageFf = storageData.featureFlags[key];
+          const ff = this._store.featureFlags[key];
+          return !ff || storageFf.variation !== ff.variation;
+        }).map(key => {
+          const storageFf = storageData.featureFlags[key];
+          const ff = this._store.featureFlags[key];
 
-            return {
+          return {
+            id: key,
+            operation: FeatureFlagUpdateOperation.update,
+            data: {
               id: key,
-              operation: FeatureFlagUpdateOperation.update,
-              data: {
-                id: key,
-                oldValue: ff?.variation,
-                newValue: storageFf.variation
-              }
+              oldValue: ff?.variation,
+              newValue: storageFf.variation
             }
-          });
+          }
+        });
 
-          this._store = storageData;
+        this._store = storageData;
 
-          updatedFeatureFlags.forEach(({ id, operation, data }) => {
-            eventHub.emit(`ff_${operation}:${data.id}`, data);
-          });
-
-          eventHub.emit(`ff_${FeatureFlagUpdateOperation.update}`, updatedFeatureFlags.reduce((res, curr) => {
-            const { id, oldValue, newValue } = curr.data;
-            res[id] = res[id] || { id, oldValue, newValue };
-
-            return res;
-          }, {}));
-        } else {
-          this._store = storageData;
-        }
+        this._emitUpdateEvents(updatedFeatureFlags);
       } else {
         this._store = {
           featureFlags: {} as { [key: string]: IFeatureFlag }

@@ -139,7 +139,7 @@ function ffListHtml(featureFlags: { [key: string]: IFeatureFlag }): string {
   }).join('');
 }
 
-function enableDevMode(store: Store, featureFlags: { [key: string]: IFeatureFlag }) {
+function enableDevMode(store: Store) {
   // display dev mode icon
   const devModeContainer = document.createElement("div");
   devModeContainer.id = 'ffc-devmode-container';
@@ -167,7 +167,7 @@ function enableDevMode(store: Store, featureFlags: { [key: string]: IFeatureFlag
     if(localStorage.getItem(devModeStorageKey) !== null) {
       localStorage.setItem(devModeStorageKey, `${false}`)
     }
-    
+
     store.isDevMode = false;
     disableDevMode();
   });
@@ -187,7 +187,7 @@ function enableDevMode(store: Store, featureFlags: { [key: string]: IFeatureFlag
 
   // add onclick listener on icon
   devModeBtn.addEventListener('click', () => {
-    createFfEditor(featureFlags);
+    createFfEditor(store.getFeatureFlags());
   });
 
   devModeContainer.appendChild(devModeBtn);
@@ -223,7 +223,7 @@ function onDevModeChange(store: Store, oldValue: string, newValue: string) {
       // make sure the document.body exists before enabling dev mode
       setTimeout(() => {
         store.isDevMode = true;
-        enableDevMode(store, store.getFeatureFlags());
+        enableDevMode(store);
       }, 0);
     } else {
       // make sure the document.body exists before enabling dev mode
@@ -247,7 +247,7 @@ export class DevMode {
     let self = this;
     self.password = password;
 
-    if (!this.password) { // if password setted, it's not allowed to activate dev mode by setting localStorage
+    if (!this.password) { // if password set, it's not allowed to activate dev mode by setting localStorage
       dispatchDevModeEvent();
       window.addEventListener(devModeEventName, function (e) {
         const { key, oldValue, newValue } = (e as CustomEvent<DevModeEventInit>).detail;
@@ -274,17 +274,20 @@ export class DevMode {
       if (devMode === 'true') {
         // make sure the document.body exists before enabling dev mode
         setTimeout(() => {
-          this.store.isDevMode = true;
-          enableDevMode(this.store, this.store.getFeatureFlags());
+          self.store.isDevMode = true;
+          enableDevMode(self.store);
         }, 0);
       }
+    } else {
+      // clear localStorage
+      localStorage.removeItem(devModeStorageKey);
     }
   }
 
   activateDevMode(password?: string): void {
     if(!this.password || this.password === password){
       this.store.isDevMode = true;
-      enableDevMode(this.store, this.store.getFeatureFlags());
+      enableDevMode(this.store);
     }
   }
 
