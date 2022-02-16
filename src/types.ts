@@ -1,99 +1,70 @@
-export interface IFFCUser {
-    userName: string,
-    email: string,
-    country?: string,
-    key: string,
-    customizeProperties?: IFFCCustomizedProperty[]
-  }
-  
-  export interface IFFCCustomizedProperty {
-    name: string,
-    value: string | number | boolean
-  }
-  
-  export interface IFFCJsClient {
-    initialize: (environmentSecret: string, user?: IFFCUser, option?: IOption) => void,
-    initUserInfo: (user: IFFCUser) => void,
-    trackCustomEventAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
-    trackCustomEvent: (data: IFFCCustomEvent[]) => boolean,
-    trackAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
-    track: (data: IFFCCustomEvent[]) => boolean,
-    sendUserVariationAsync: (featureFlagKey: string, variationOptionId: number) => Promise<void>,
-    variationAsync: (featureFlagKey: string, defaultResult?: string) => Promise<string>,
-    variation: (featureFlagKey: string, defaultResult?: string) => string
-  }
-  
-  export interface IFFCCustomEvent {
-    secret?: string,
-    route?: string,
-    appType?: string,
-    eventName: string,
-    numericValue?: number,
-    customizedProperties?: IFFCCustomizedProperty[],
-    user?: IFFCUser
-  }
-  
-  export interface IOption {
-    baseUrl?: string,
-    appType?: string,
-    throttleWait?: number
-  }
+export interface IOption {
+  secret: string,
+  anonymous?: boolean,
+  boostrap?: IFeatureFlag[],
+  devModePassword?: string,
+  api?: string,
+  appType?: string,
+  user?: IUser,
+  enableDataSync?: boolean
+}
 
-  export interface IZeroCode {
-    envId: number,
-    envSecret: string,
-    isActive: boolean,
-    featureFlagId: string,
-    featureFlagType: FeatureFlagType, 
-    featureFlagKey: string,
-    items: ICssSelectorItem[]
-  }
+export interface IUser {
+  userName: string,
+  email: string,
+  country?: string,
+  id: string,
+  customizeProperties?: ICustomizedProperty[]
+}
 
-  export interface IHtmlProperty {
-    id: string,
-    name: string,
-    value: string
-  }
+export interface ICustomizedProperty {
+  name: string,
+  value: string | number | boolean
+}
 
-  export interface ICSS {
-    name: string,
-    value: string | number
-  }
-  
-  export interface ICssSelectorItem {
-    cssSelector: string,
-    variationValue: string,
-    variationOptionId: number,
-    action: string,
-    htmlProperties: IHtmlProperty[],
-    htmlContent: string,
-    style: string,
-    url: string
-  }
+export interface IVariationOption {
+  id: number,
+  value: string
+}
 
-  export enum FeatureFlagType {
-    Classic = 1,
-    Pretargeted = 2 // 已经预分流，无需我们的开关做用户分流
+export interface IFeatureFlagVariation {
+  id: string,
+  sendToExperiment: boolean
+  timestamp: number,
+  variation: {
+    id: number,
+    value: string,
   }
+}
 
-  export enum EventType {
-    Custom = 1,
-    PageView = 2,
-    Click = 3
-  }
+export interface IFeatureFlagBase {
+  id: string, // the keyname
+  variation: string,
+}
+export interface IFeatureFlag extends IFeatureFlagBase{
+  sendToExperiment: boolean,
+  timestamp: number,
+  isArchived: boolean,
+  variationOptions: IVariationOption[]
+}
 
-  export enum UrlMatchType {
-    Substring = 1
-  }
-  
-  export interface ITargetUrl {
-    matchType: UrlMatchType,
-    url: string
-  }
+export interface IDataStore {
+  featureFlags: { [key: string]: IFeatureFlag }
+}
 
-  export interface IExptMetricSetting {
-    eventName: string,
-    eventType: EventType,
-    elementTargets: string,
-    targetUrls: ITargetUrl[]
-  }
+export enum StreamResponseEventType {
+  full = 'full',
+  patch = 'patch'
+}
+
+export enum FeatureFlagUpdateOperation {
+  update = 'update',
+  createDevData = 'createDevData',
+  devDataCreated = 'devDataCreated'
+}
+
+export interface IStreamResponse {
+  version: number,
+  eventType: StreamResponseEventType,
+  featureFlags: IFeatureFlag[]
+}
