@@ -27,29 +27,31 @@ After initialization, the SDK has all the feature flags locally and it does not 
 ### Install
 npm
   ```
-  npm install ffc-js-client-sdk
+  npm install ffc-js-client-side-sdk
   ```
 
 yarn
 ```
-yarn add ffc-js-client-sdk
+yarn add ffc-js-client-side-sdk
 ```
 
 browser (you can also self host the SDK alongside your other JavaScript code in production environment)
 ```
 <script src="https://assets.feature-flags.co/sdks/ffc-sdk.js" ></script>
+// or
+<script src="https://assets.feature-flags.co/sdks/ffc-sdk-[versionnumber].js" ></script>
 ```
 
 To import the SDK:
 ```javascript
 // Using ES2015 imports
-import Ffc from 'ffc-js-client-sdk';
+import Ffc from 'ffc-js-client-side-sdk';
 
 // Using TypeScript imports
-import Ffc from 'ffc-js-client-sdk';
+import Ffc from 'ffc-js-client-side-sdk';
 
 // Using react imports
-import Ffc from 'ffc-js-client-sdk';
+import Ffc from 'ffc-js-client-side-sdk';
 ```
 
 If using typescipt and seeing the following error:
