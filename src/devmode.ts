@@ -153,7 +153,7 @@ function enableDevMode(store: Store) {
   const closeBtn = document.createElement("div");
   closeBtn.style.height = '25px';
   closeBtn.innerHTML = `
-    <div id="ffc-devmode-close" style="font-size: 25px;padding: 6px 20px;cursor: pointer;font-weight:600;text-align:right"></div>
+    <div id="ffc-devmode-close" style="font-size: 25px;padding: 6px 20px;cursor: pointer;font-weight:600;text-align:right;width:50px"></div>
     <style>
     #ffc-devmode-close:after{
       display: inline-block;
