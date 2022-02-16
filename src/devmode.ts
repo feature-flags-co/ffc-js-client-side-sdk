@@ -164,10 +164,7 @@ function enableDevMode(store: Store) {
 
   // add onclick listener on close button, turn off dev mode if clicked
   closeBtn.addEventListener('click', () => {
-    if(localStorage.getItem(devModeStorageKey) !== null) {
-      localStorage.setItem(devModeStorageKey, `${false}`)
-    }
-
+    localStorage.setItem(devModeStorageKey, `${false}`)
     store.isDevMode = false;
     disableDevMode();
   });

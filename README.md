@@ -118,11 +118,11 @@ var flagValue = Ffc.boolVariation("YOUR_FEATURE_KEY", defaultValue);
 ### Activate developer mode
 Developer mode is a powerful tool we created allowing developers to manipulate the feature flags locally instead of modifying them on [feature-flags.co](feature-flags.co). **This will not change the remote values**.
 
-If **devModePassword** is set in option, the only way to activate developer mode is by calling the following two methods:
+If **devModePassword** is set in option, the only way to activate developer mode is by calling the method **activateDevMode** with password as parameter:
 ```javascript
 Ffc.activateDevMode('PASSWORD'); // This will activate the developer mode, you should be able to see an icon on bottom right of the screen. PASSWORD should be the same as the value passed to option
 
-Ffc.openDevModeEditor(); // The mothod will open the developer mode editor
+Ffc.openDevModeEditor(); // The method will open the developer mode editor, or you can just click on the developer mode icon
 ```
 
 Otherwise, if **devModePassword** is not set, we have three ways to activate the developer mode.
