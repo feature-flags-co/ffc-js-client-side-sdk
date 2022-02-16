@@ -287,6 +287,7 @@ export class DevMode {
   activateDevMode(password?: string): void {
     if(!this.password || this.password === password){
       this.store.isDevMode = true;
+      localStorage.setItem(devModeStorageKey, `${true}`);
       enableDevMode(this.store);
     }
   }
