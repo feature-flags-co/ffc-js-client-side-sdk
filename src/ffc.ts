@@ -1,5 +1,4 @@
 import { DevMode } from "./devmode";
-import { IS_PROD } from "./environment";
 import { eventHub } from "./events";
 import { logger } from "./logger";
 import { Store } from "./store";
@@ -46,7 +45,7 @@ class Ffc {
   private _featureFlagInsightQueue: Queue<IFeatureFlagVariation> = new Queue<IFeatureFlagVariation>(1, featureFlagInsightFlushTopic);
   private _option: IOption = {
     secret: '',
-    api: IS_PROD ? 'https://api.feature-flags.co' : 'https://ffc-api-ce2-dev.chinacloudsites.cn',
+    api: 'https://api.feature-flags.co',
     devModePassword: '',
     enableDataSync: true,
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',

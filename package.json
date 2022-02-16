@@ -5,7 +5,7 @@
   "main": "esm/ffc.js",
   "scripts": {
     "build": "rimraf umd && rimraf esm && tsc && webpack --mode production",
-    "watch": "rimraf umd && webpack --watch",
+    "watch": "rimraf umd && webpack --watch --mode development",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
