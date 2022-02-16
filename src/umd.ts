@@ -14,7 +14,6 @@ import { IOption } from './types';
 const script = document.querySelector('script[data-ffc-client]');
 const envSecret = script?.getAttribute('data-ffc-client')
 
-
 if (script && envSecret) {
   const option: IOption = {
     secret: envSecret!,

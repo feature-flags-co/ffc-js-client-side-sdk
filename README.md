@@ -83,11 +83,10 @@ The complete list of the available parameters in option:
 - **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be set later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
 - **boostrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
 - **enableDataSync**: false if you do not want to sync data with remote server, in this case feature flags must be set to **bootstrap** option or be passed to the method **bootstrap**. The default value is true. **not mandatory** 
-- **devMode**: true if you want the developer mode to be activated after initiation of the SDK, this will add an button(icon) on the bottom right of the screen, which allows you to manipulate all the feature flags locally during development. It can also be activated after initialization by a commande in the browser console or a querystring in your url. **Be aware this would not activate developer mode if devModePassword is setted**. The default value is false. **not mandatory**
-- **devModePassword**: if setted, the developer mode can only be activated by calling the method **activateDevMode** on Ffc and the parameter **devMode would be ignored**. **not mandatory** 
+- **devModePassword**: if setted, the developer mode can only be activated by calling the method **activateDevMode** with password on Ffc . **not mandatory** 
 - **api**: the API url of the server, set it only if you are self hosting the back-end. **not mandatory**
 - **appType**: the app type, the default value is javascript, **not mandatory**
-- **user**: the user connected to your APP, can be ignored if **useAnonymousUser** equals to true. 
+- **user**: the user connected to your APP, can be ignored if **anonymous** equals to true. 
   - **userName**: the user name. **mandatory**
   - **id**: the unique identifier. **mandatory**
   - **email**: can be useful when you configure your feature flag rules. **not mandatory**
@@ -119,34 +118,25 @@ var flagValue = Ffc.boolVariation("YOUR_FEATURE_KEY", defaultValue);
 ### Activate developer mode
 Developer mode is a powerful tool we created allowing developers to manipulate the feature flags locally instead of modifying them on [feature-flags.co](feature-flags.co). **This will not change the remote values**.
 
-If **devModePassword** is set in option, the only way to activate developer mode is by calling the method **activateDevMode** with password as parameter:
+To activate the developer mode, the activateDevMode method should be called as following, the password parameter is 
 ```javascript
-Ffc.activateDevMode('PASSWORD'); // This will activate the developer mode, you should be able to see an icon on bottom right of the screen. PASSWORD should be the same as the value passed to option
+// This will activate developer mode, you should be able to see an icon on bottom right of the screen. 
+// PASSWORD should be the same as the value passed to option or empty if devModePassword is not set
+Ffc.activateDevMode('PASSWORD'); 
 
-Ffc.openDevModeEditor(); // The method will open the developer mode editor, or you can just click on the developer mode icon
-
-Ffc.quitDevMode(); // call this method to quit developer mode
+// or
+// this method is equivalent to Ffc.activateDevMode('PASSWORD')
+window.activateFfcDevMode('PASSWORD'); 
 ```
 
-Otherwise, if **devModePassword** is not set, we have three ways to activate the developer mode.
-- From query string.
- Add this to your url before loading the page: **?devmode=true**
-
-- From browser console. Execute this command in the browser console
+// The method will open the developer mode editor, or you can just click on the developer mode icon
+To open the developer mode editor or quit developer mode, use the following code:
 ```javascript
-  activateDevMode('PASSWORD'); // PASSWORD is optional depending on your setting in option
-```
+// The method will open the developer mode editor, or you can just click on the developer mode icon
+Ffc.openDevModeEditor(); 
 
-- From the **init** method.
-```javascript
-  // define the option with the devMode parameter
-  const option = {
-    ...
-    devMode: true,
-    ...
-  }
-
-  Ffc.init(option);
+// call this method to quit developer mode
+Ffc.quitDevMode(); 
 ```
 
 ### bootstrap

@@ -240,7 +240,7 @@ export class DevMode {
     });
   }
 
-  init(password: string, activateDevMode?: boolean) {
+  init(password: string) {
     let self = this;
     self.password = password;
 
@@ -253,18 +253,14 @@ export class DevMode {
         }
       });
 
-      // set devmode from the param
-      if (activateDevMode !== undefined && activateDevMode !== null) {
-        localStorage.setItem(devModeStorageKey, `${activateDevMode === true}`);
-      }
-
-      // set devmode from query string
-      const queryString = window.location.search;
-      const urlParams = new URLSearchParams(queryString);
-      const devModeParam = urlParams.get(devModeQueryStr);
-      if (devModeParam !== null && ['true', 'false'].findIndex(ele => ele === devModeParam.toLocaleLowerCase()) > -1) {
-        localStorage.setItem(devModeStorageKey, devModeParam);
-      }
+      // currently we dont want this feature
+      // // set devmode from query string
+      // const queryString = window.location.search;
+      // const urlParams = new URLSearchParams(queryString);
+      // const devModeParam = urlParams.get(devModeQueryStr);
+      // if (devModeParam !== null && ['true', 'false'].findIndex(ele => ele === devModeParam.toLocaleLowerCase()) > -1) {
+      //   localStorage.setItem(devModeStorageKey, devModeParam);
+      // }
 
       // if already in dev mode since loading of the page
       let devMode = localStorage.getItem(devModeStorageKey) || 'false';

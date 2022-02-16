@@ -108,8 +108,6 @@ export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: str
     }];
 
     await postData(`${apiBaseUrl}/api/public/analytics/track/feature-flags`, payload, { envSecret: envSecret });
-    logger.logDebug('sendFeatureFlagInsights');
-    logger.logDebug(payload);
   } catch (err) {
     logger.logDebug(err);
   }

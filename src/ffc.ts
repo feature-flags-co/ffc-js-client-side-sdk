@@ -60,7 +60,6 @@ class Ffc {
       });
     });
 
-
     // reconnect to websocket
     eventHub.subscribe(websocketReconnectTopic, () => {
       this.dataSync().then(() => {
@@ -73,7 +72,9 @@ class Ffc {
 
     // track feature flag usage data
     eventHub.subscribe(featureFlagInsightFlushTopic, () => {
-      sendFeatureFlagInsights(this._option.api!, this._option.secret, this._option.user!, this._featureFlagInsightQueue.removeAll());
+      if (this._option.enableDataSync){
+        sendFeatureFlagInsights(this._option.api!, this._option.secret, this._option.user!, this._featureFlagInsightQueue.removeAll());
+      }
     });
 
     eventHub.subscribe(featureFlagEvaluatedTopic, (data: IFeatureFlagVariation) => {
@@ -154,7 +155,7 @@ class Ffc {
       });
     }
     
-    this._devMode.init(this._option.devModePassword || '', this._option.devMode);
+    this._devMode.init(this._option.devModePassword || '');
   }
 
   async dataSync(): Promise<any> {

@@ -2,7 +2,6 @@ export interface IOption {
   secret: string,
   anonymous?: boolean,
   boostrap?: IFeatureFlag[],
-  devMode?: boolean,
   devModePassword?: string,
   api?: string,
   appType?: string,
