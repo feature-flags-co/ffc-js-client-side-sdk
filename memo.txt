@@ -5,7 +5,6 @@ lib/			// ES5(commonjs) + source + .d.ts
 lib-esm/		// ES5(esmodule) + source + .d.ts
 
 2. publish
-    2.0 change IS_PROD to true
     2.1 npm run build
     2.2 npm login
     2.3 npm publish --access public
