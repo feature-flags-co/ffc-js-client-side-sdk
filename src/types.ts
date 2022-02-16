@@ -2,10 +2,11 @@ export interface IOption {
   secret: string,
   anonymous?: boolean,
   boostrap?: IFeatureFlag[],
-  devMode?: boolean,
+  devModePassword?: string,
   api?: string,
   appType?: string,
-  user?: IUser
+  user?: IUser,
+  enableDataSync?: boolean
 }
 
 export interface IUser {
@@ -36,9 +37,11 @@ export interface IFeatureFlagVariation {
   }
 }
 
-export interface IFeatureFlag {
+export interface IFeatureFlagBase {
   id: string, // the keyname
   variation: string,
+}
+export interface IFeatureFlag extends IFeatureFlagBase{
   sendToExperiment: boolean,
   timestamp: number,
   isArchived: boolean,

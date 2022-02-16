@@ -1,52 +1,79 @@
 import { DevMode } from "./devmode";
-import { IS_PROD } from "./environment";
 import { eventHub } from "./events";
 import { logger } from "./logger";
 import { Store } from "./store";
 import { connectWebSocket, sendFeatureFlagInsights } from "./network.service";
-import { IFeatureFlag, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
+import { IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, generateConnectionToken, validateOption } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedTopic, featureFlagInsightFlushTopic, websocketReconnectTopic } from "./constants";
 
 
-class Ffc {
+function createorGetAnonymousUser(): IUser {
+  let sessionId = ffcguid();
+  var c_name = 'JSESSIONID';
+  if (document.cookie.length > 0) {
+    let c_start = document.cookie.indexOf(c_name + "=")
+    if (c_start != -1) {
+      c_start = c_start + c_name.length + 1
+      let c_end = document.cookie.indexOf(";", c_start)
+      if (c_end == -1) c_end = document.cookie.length
+      sessionId = unescape(document.cookie.substring(c_start, c_end));
+    }
+  }
 
+  return {
+    userName: sessionId,
+    email: `${sessionId}@anonymous.com`,
+    id: sessionId
+  };
+}
+
+function mapFeatureFlagsToFeatureFlagBaseList(featureFlags: { [key: string]: IFeatureFlag }): IFeatureFlagBase[] {
+  return Object.keys(featureFlags).map((cur) => {
+    const { id, variation } = featureFlags[cur];
+    return { id, variation};
+  });
+}
+
+class Ffc {
   private _readyEventEmitted: boolean = false;
-  private _readyPromise: Promise<void>;
+  private _readyPromise: Promise<IFeatureFlagBase[]>;
 
   private _devMode: DevMode;
   private _store: Store = new Store();
   private _featureFlagInsightQueue: Queue<IFeatureFlagVariation> = new Queue<IFeatureFlagVariation>(1, featureFlagInsightFlushTopic);
   private _option: IOption = {
     secret: '',
-    api: IS_PROD ? 'https://api.feature-flags.co' : 'https://ffc-api-ce2-dev.chinacloudsites.cn',
+    api: 'https://api.feature-flags.co',
+    devModePassword: '',
+    enableDataSync: true,
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
-    appType: 'JavaScript'
   };
 
   constructor() {
     this._devMode = new DevMode(this._store);
-    this._readyPromise = new Promise<void>((resolve, reject) => {
+    this._readyPromise = new Promise<IFeatureFlagBase[]>((resolve, reject) => {
       this.on('ready', () => {
-        resolve();
+        resolve(mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
       });
     });
-
 
     // reconnect to websocket
     eventHub.subscribe(websocketReconnectTopic, () => {
       this.dataSync().then(() => {
         if (!this._readyEventEmitted) {
           this._readyEventEmitted = true;
-          eventHub.emit('ready');
+          eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
         }
       });
     });
 
     // track feature flag usage data
     eventHub.subscribe(featureFlagInsightFlushTopic, () => {
-      sendFeatureFlagInsights(this._option.api!, this._option.secret, this._option.user!, this._featureFlagInsightQueue.removeAll());
+      if (this._option.enableDataSync){
+        sendFeatureFlagInsights(this._option.api!, this._option.secret, this._option.user!, this._featureFlagInsightQueue.removeAll());
+      }
     });
 
     eventHub.subscribe(featureFlagEvaluatedTopic, (data: IFeatureFlagVariation) => {
@@ -58,7 +85,7 @@ class Ffc {
     eventHub.subscribe(name, cb);
   }
 
-  waitUntilReady(): Promise<void> {
+  waitUntilReady(): Promise<IFeatureFlagBase[]> {
     return this._readyPromise;
   }
 
@@ -71,27 +98,7 @@ class Ffc {
 
     this._option = Object.assign({}, this._option, option, { api: (option.api || this._option.api)?.replace(/\/$/, '') });
 
-    if (!option.user) {
-      let sessionId = ffcguid();
-      var c_name = 'JSESSIONID';
-      if (document.cookie.length > 0) {
-        let c_start = document.cookie.indexOf(c_name + "=")
-        if (c_start != -1) {
-          c_start = c_start + c_name.length + 1
-          let c_end = document.cookie.indexOf(";", c_start)
-          if (c_end == -1) c_end = document.cookie.length
-          sessionId = unescape(document.cookie.substring(c_start, c_end));
-        }
-      }
-
-      this.identify({
-        userName: sessionId,
-        email: `${sessionId}@anonymous.com`,
-        id: sessionId
-      });
-    } else {
-      this.identify(option.user);
-    }
+    this.identify(option.user || createorGetAnonymousUser());
   }
 
   identify(user: IUser): void {
@@ -100,6 +107,23 @@ class Ffc {
     this._store.userId = this._option.user.id;
     //setTimeout(() => this.bootstrap(), 20000);
     this.bootstrap();
+  }
+
+  activateDevMode(password?: string){
+    this._devMode.activateDevMode(password);
+  }
+
+  openDevModeEditor() {
+    this._devMode.openEditor();
+  }
+
+  quitDevMode() {
+    this._devMode.quit();
+  }
+
+  logout(): void {
+    const anonymousUser = createorGetAnonymousUser();
+    this.identify(anonymousUser);
   }
 
   bootstrap(featureFlags?: IFeatureFlag[]): void {
@@ -115,20 +139,22 @@ class Ffc {
       };
 
       this._store.setFullData(data);
-      eventHub.emit('ready');
+      eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
       logger.logDebug('bootstrapped with full data');
     }
 
-    // start data sync
-    this.dataSync().then(() => {
-      this._store.isDevMode = !!this._option.devMode;
-      if (!this._readyEventEmitted) {
-        this._readyEventEmitted = true;
-        eventHub.emit('ready');
-      }
-    });
-
-    this._devMode.init(this._option.devMode);
+    if (this._option.enableDataSync) {
+      // start data sync
+      this.dataSync().then(() => {
+        this._store.isDevMode = !!this._store.isDevMode;
+        if (!this._readyEventEmitted) {
+          this._readyEventEmitted = true;
+          eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
+        }
+      });
+    }
+    
+    this._devMode.init(this._option.devModePassword || '');
   }
 
   async dataSync(): Promise<any> {
@@ -182,5 +208,8 @@ class Ffc {
   }
 }
 
-export default new Ffc();
+const ffc = new Ffc();
+window['activateFfcDevMode'] = (password?: string) => ffc.activateDevMode(password);
+
+export default ffc;
 

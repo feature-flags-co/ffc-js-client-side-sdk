@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script data-ffc-client="ZmFhLTg1MTMtNCUyMDIxMDYwOTEzNTU1MV9fMl9fM19fNV9fZGVmYXVsdF8wNTU4OQ==" src="../umd/ffc-sdk.js"></script>
+    <script src="../umd/ffc-sdk.js"></script>
     <!-- <script async data-ffc-client="OWE2LTZiOWItNCUyMDIxMTExNTA5MDY1Ml9fNV9fMjhfXzU2X19kZWZhdWx0X2VmNzU2" src="../umd/ffc-sdk.js"></script> -->
     <!-- <script async data-ffc-client='YzhlLTFmMGItNCUyMDIxMTExNTA3Mzk1MV9fMTZfXzIzX180N19fZGVmYXVsdF9mOGIzYQ==' src='../umd/ffc-sdk.js'></script> -->
     <title>feature-flags.co</title>
@@ -36,6 +36,9 @@
     <div class="welcome"><span>欢迎新同学</span> <a href="#">Onboarding</a></div>
     <div class="welcomeb"><span>欢迎新同学b</span> <a href="#">Onboardingb</a></div>
     <div id="hide-element" class="anniu">隐藏我</div>
+    <div id="activate-devmode" class="anniu">activate devmode</div>
+    <div id="show-devmode-editor" class="anniu">display dev mode editor</div>
+    <div id="quit-devmode" class="anniu">quit devmode</div>
     <div id="color-ff">COLOR</div>
     <style>
         .row {
@@ -59,40 +62,60 @@
     <script type="text/javascript">
 
 
-     window.onload = (event) => {
-        
-        // let color = Ffc.variation('color', 'orange');
-        // document.getElementById('color-ff').style.backgroundColor = color;
+     window.onload = async (event) => {
+        const option = {
+            secret: '[envSecret]', // user your own env secret
+            anonymous: true,
+            devModePassword: '123abc',
+            user: {
+                id: '123',
+                userName: '123',
+                email:'123@aa.com'
+            }
+        };
 
-        // Ffc.on('ff_update:color', (d) => {
-        //     let color = Ffc.variation('color', 'orange');
-        //     document.getElementById('color-ff').style.backgroundColor = color;
-        // });
+        Ffc.init(option);
 
-        // Ffc.on('ff_update:color', (d) => {
-        //     let color = Ffc.variation('color', 'orange');
-        //     document.getElementById('color-ff').style.backgroundColor = color;
-        // });
+        let color = Ffc.variation('react-demo-tic-tac-toe', 'brown');
+        document.getElementById('color-ff').style.backgroundColor = color;
 
-        // Ffc.on('ready', () => {
-        //     console.log('ready');
+        Ffc.on('ff_update:react-demo-tic-tac-toe', (d) => {
+            let color = Ffc.variation('react-demo-tic-tac-toe', 'orange');
+            document.getElementById('color-ff').style.backgroundColor = color;
+        });
+
+        document.getElementById('activate-devmode').addEventListener('click', () => {
+            Ffc.activateDevMode('123abc');
+        });
+
+        document.getElementById('show-devmode-editor').addEventListener('click', () => {
+            Ffc.openDevModeEditor();
+        });
+
+        document.getElementById('quit-devmode').addEventListener('click', () => {
+            Ffc.quitDevMode();
+        });
+
+
+        // Ffc.on('ready', (data) => {
+        //     console.log(data);
         // })
 
-        let zerocode = Ffc.variationBool('测试', true);
-        if (zerocode === true) {
-            document.getElementById('hide-element').style.display = 'block';
-        } else {
-            document.getElementById('hide-element').style.display = 'none';
-        }
+        // let zerocode = Ffc.boolVariation('测试', true);
+        // if (zerocode === true) {
+        //     document.getElementById('hide-element').style.display = 'block';
+        // } else {
+        //     document.getElementById('hide-element').style.display = 'none';
+        // }
 
-        Ffc.on('ff_update:测试', (d) => {
-            let zerocode = Ffc.variationBool('测试', true);
-            if (zerocode === true) {
-                document.getElementById('hide-element').style.display = 'block';
-            } else {
-                document.getElementById('hide-element').style.display = 'none';
-            }
-        });
+        // Ffc.on('ff_update:测试', (d) => {
+        //     let zerocode = Ffc.boolVariation('测试', true);
+        //     if (zerocode === true) {
+        //         document.getElementById('hide-element').style.display = 'block';
+        //     } else {
+        //         document.getElementById('hide-element').style.display = 'none';
+        //     }
+        // });
         
         //let userName = Date.now();
 

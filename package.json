@@ -1,11 +1,11 @@
 {
-  "name": "ffc-js-client-sdk",
-  "version": "2.0.0",
-  "description": "https://github.com/feature-flags-co/ffc-js-client-side-sdk",
+  "name": "ffc-js-client-side-sdk",
+  "version": "1.0.1",
+  "description": "https://github.com/feature-flags-co/ffc-js-client-sdk",
   "main": "esm/ffc.js",
   "scripts": {
     "build": "rimraf umd && rimraf esm && tsc && webpack --mode production",
-    "watch": "rimraf umd && webpack --watch",
+    "watch": "rimraf umd && webpack --watch --mode development",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/feature-flags-co/ffc-js-client-side-sdk.git"
+    "url": "git+https://github.com/feature-flags-co/ffc-js-client-sdk.git"
   },
   "keywords": [
     "feature-flags.co",
@@ -23,9 +23,9 @@
   "author": "北京心跳率科技有限公司",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/feature-flags-co/ffc-js-client-side-sdk/issues"
+    "url": "https://github.com/feature-flags-co/ffc-js-client-sdk/issues"
   },
-  "homepage": "https://github.com/feature-flags-co/ffc-js-client-side-sdk#readme",
+  "homepage": "https://github.com/feature-flags-co/ffc-js-client-sdk#readme",
   "files": [
     "/esm",
     "/umd"

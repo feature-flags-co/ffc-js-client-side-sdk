@@ -27,29 +27,31 @@ After initialization, the SDK has all the feature flags locally and it does not 
 ### Install
 npm
   ```
-  npm install ffc-js-client-sdk
+  npm install ffc-js-client-side-sdk
   ```
 
 yarn
 ```
-yarn add ffc-js-client-sdk
+yarn add ffc-js-client-side-sdk
 ```
 
 browser (you can also self host the SDK alongside your other JavaScript code in production environment)
 ```
 <script src="https://assets.feature-flags.co/sdks/ffc-sdk.js" ></script>
+// or
+<script src="https://assets.feature-flags.co/sdks/ffc-sdk-[versionnumber].js" ></script>
 ```
 
 To import the SDK:
 ```javascript
 // Using ES2015 imports
-import Ffc from 'ffc-js-client-sdk';
+import Ffc from 'ffc-js-client-side-sdk';
 
 // Using TypeScript imports
-import Ffc from 'ffc-js-client-sdk';
+import Ffc from 'ffc-js-client-side-sdk';
 
 // Using react imports
-import Ffc from 'ffc-js-client-sdk';
+import Ffc from 'ffc-js-client-side-sdk';
 ```
 
 If using typescipt and seeing the following error:
@@ -80,12 +82,13 @@ Ffc.init(option);
 
 The complete list of the available parameters in option:
 - **secret**: the client side secret of your environment. **mandatory**
-- **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be setted later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
+- **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be set later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
 - **boostrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
-- **devMode**: true if you want to init the SDK with developer mode, this will add an button(icon) on the bottom right of the screen, which allows you to manipulate all the feature flags locally during development. It can also be activated after initialization by a commande in the browser console or a querystring in your url. The default value is false. **not mandatory**
+- **enableDataSync**: false if you do not want to sync data with remote server, in this case feature flags must be set to **bootstrap** option or be passed to the method **bootstrap**. The default value is true. **not mandatory** 
+- **devModePassword**: if setted, the developer mode can only be activated by calling the method **activateDevMode** with password on Ffc . **not mandatory** 
 - **api**: the API url of the server, set it only if you are self hosting the back-end. **not mandatory**
 - **appType**: the app type, the default value is javascript, **not mandatory**
-- **user**: the user connected to your APP, can be ignored if **useAnonymousUser** equals to true. 
+- **user**: the user connected to your APP, can be ignored if **anonymous** equals to true. 
   - **userName**: the user name. **mandatory**
   - **id**: the unique identifier. **mandatory**
   - **email**: can be useful when you configure your feature flag rules. **not mandatory**
@@ -117,25 +120,25 @@ var flagValue = Ffc.boolVariation("YOUR_FEATURE_KEY", defaultValue);
 ### Activate developer mode
 Developer mode is a powerful tool we created allowing developers to manipulate the feature flags locally instead of modifying them on [feature-flags.co](feature-flags.co). **This will not change the remote values**.
 
-Three ways to activate the developer mode.
-- From query string.
- Add this to your url before loading the page: **?devmode=true**
-
-- From browser console. Execute this command in the browser console
+To activate the developer mode, the activateDevMode method should be called as following, the password parameter is 
 ```javascript
-  localStorage.setItem('ffcdevmode', true);
+// This will activate developer mode, you should be able to see an icon on bottom right of the screen. 
+// PASSWORD should be the same as the value passed to option or empty if devModePassword is not set
+Ffc.activateDevMode('PASSWORD'); 
+
+// or
+// this method is equivalent to Ffc.activateDevMode('PASSWORD')
+window.activateFfcDevMode('PASSWORD'); 
 ```
 
-- From the **init** method.
+// The method will open the developer mode editor, or you can just click on the developer mode icon
+To open the developer mode editor or quit developer mode, use the following code:
 ```javascript
-  // define the option with the devMode parameter
-  const option = {
-    ...
-    devMode: true,
-    ...
-  }
+// The method will open the developer mode editor, or you can just click on the developer mode icon
+Ffc.openDevModeEditor(); 
 
-  Ffc.init(option);
+// call this method to quit developer mode
+Ffc.quitDevMode(); 
 ```
 
 ### bootstrap
@@ -179,12 +182,15 @@ const featureflags = [{ // the array should contain all your feature flags
 Ffc.bootstrap(featureflags);
 ```
 
+**If you want to disable the synchronization with remote server, set enableDataSync to false in option**. In this case, bootstrap option must be set or bootstrap method must be called with feature flags.
+
 To find out when the client is ready, you can use one of two mechanisms: events or promises.
 
 The client object can emit JavaScript events. It emits a ready event when it receives initial flag values from feature-flags.co. You can listen for this event to determine when the client is ready to evaluate flags.
 
 ```javascript
-Ffc.on('ready', () => {
+Ffc.on('ready', (data) => {
+  // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
   var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
 });
 
@@ -193,11 +199,12 @@ Ffc.on('ready', () => {
 Or, you can use a promise instead of an event. The SDK has a method that return a promise for initialization: waitUntilReady(). The behavior of waitUntilReady() is equivalent to the ready event. The promise resolves when the client receives its initial flag data. As with all promises, you can either use .then() to provide a callback, or use await if you are writing asynchronous code.
 
 ```javascript
-Ffc.waitUntilReady().then(() => {
+Ffc.waitUntilReady().then((data) => {
+  // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
   // initialization succeeded, flag values are now available
 });
 // or, with await:
-await Ffc.waitUntilReady();
+const featureFlags = await Ffc.waitUntilReady();
 // initialization succeeded, flag values are now available
 ```
 
@@ -207,6 +214,12 @@ The SDK only decides initialization has failed if it receives an error response 
 If the user parameter cannot be passed by the init method, the following method can be used to set the user after initialization.
 ```javascript
   Ffc.identify(user);
+```
+
+### Set the user to anonymous user
+We can manully call the method logout, which will switch the current user back to anonymous user if exists already or create a new anonymous user.
+```javascript
+  Ffc.logout(user);
 ```
 
 ### Subscribe to the changes of feature flag(s)

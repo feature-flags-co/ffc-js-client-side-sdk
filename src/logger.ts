@@ -1,5 +1,3 @@
-import { IS_PROD } from "./environment";
-
 import { debugModeQueryStr } from "./constants";
 
 // get debug mode from query string
@@ -9,7 +7,7 @@ const debugModeParam = urlParams.get(debugModeQueryStr);
 
 export const logger = {
     logDebug(...args) {
-        if (debugModeParam === 'true' || !IS_PROD) {
+        if (debugModeParam === 'true') {
             console.log(...args);
         }
     },
