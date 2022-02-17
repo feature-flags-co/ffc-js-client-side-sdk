@@ -1,78 +1,238 @@
-import { track } from "../network.service";
-import { IOption } from "../types";
-import { EventType, IExptMetricSetting, UrlMatchType } from "./types";
+import { IUser } from "../types";
+import { ffcSpecialValue } from "./constants";
+import { AutoCaptureNetworkService } from "./network.service";
+import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, IZeroCode, UrlMatchType, ICSS } from "./types";
+import { extractCSS, groupBy, isUrlMatch, throttleAsync } from "./utils";
+import Ffc from "../ffc";
 
-// test if the current page url mathch the given url
-function isUrlMatch(matchType: UrlMatchType, url: string): boolean {
-  const current_page_url = window.location.href;
-  if (url === null || url === undefined || url === '') {
-    return true;
-  }
-  
-  switch(matchType){
-    case UrlMatchType.Substring:
-      return current_page_url.includes(url);
-    default:
-      return false;
+declare global {
+  interface Window {
+    WebKitMutationObserver:any;
+    MozMutationObserver: any;
   }
 }
 
+class AutoCapture {
+  private netWorkService?: AutoCaptureNetworkService;
 
+  constructor() {}
 
-  class AutoCapture {
-    constructor(private option: IOption){}
+  async init(api: string, secret: string, appType: string, user: IUser) {
+    this.netWorkService = new AutoCaptureNetworkService(api!, secret, appType!, user!);
 
-    init() {
+    const settings = await Promise.all([this.netWorkService.getActiveExperimentMetricSettings(), this.netWorkService.getZeroCodeSettings()]);
+  
+    await Promise.all([this.capturePageViews(settings[0]), this.trackZeroCodingAndClicks(settings[1], settings[0])]);
+    const html = document.querySelector('html');
+    if (html) {
+      html.style.visibility = 'visible';
+    }
+  }
 
+  identify(user: IUser) {
+    this.netWorkService!.user = user;
+  }
+
+  private async capturePageViews(exptMetricSettings: IExptMetricSetting[]) {
+    const self: AutoCapture = this;
+    history.pushState = (f => function pushState(this: any) {
+      const argumentsTyped: any = arguments;
+      const ret = f.apply(this, argumentsTyped);
+      window.dispatchEvent(new Event('pushstate'));
+      window.dispatchEvent(new Event('locationchange'));
+      return ret;
+    })(history.pushState);
+
+    history.replaceState = (f => function replaceState(this: any) {
+      const argumentsTyped: any = arguments;
+      const ret = f.apply(this, argumentsTyped);
+      window.dispatchEvent(new Event('replacestate'));
+      window.dispatchEvent(new Event('locationchange'));
+      return ret;
+    })(history.replaceState);
+
+    window.addEventListener('popstate', () => {
+      window.dispatchEvent(new Event('locationchange'))
+    });
+
+    const pageViewSetting = exptMetricSettings
+      .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+
+    if (!!pageViewSetting) {
+      const data = [{
+        type: 'PageView',
+        route: window.location.href,
+        eventName: pageViewSetting.eventName
+      }];
+
+      await this.netWorkService!.track(data);
     }
 
-    async capturePageViews (exptMetricSettings: IExptMetricSetting[]) {
-      const self: AutoCapture = this;
-      history.pushState = ( f => function pushState(this: any){
-        const argumentsTyped: any = arguments;
-        const ret = f.apply(this, argumentsTyped);
-        window.dispatchEvent(new Event('pushstate'));
-        window.dispatchEvent(new Event('locationchange'));
-        return ret;
-      })(history.pushState);
-      
-      history.replaceState = ( f => function replaceState(this: any){
-        const argumentsTyped: any = arguments;
-        const ret = f.apply(this, argumentsTyped);
-        window.dispatchEvent(new Event('replacestate'));
-        window.dispatchEvent(new Event('locationchange'));
-        return ret;
-      })(history.replaceState);
-      
-      window.addEventListener('popstate',()=>{
-        window.dispatchEvent(new Event('locationchange'))
-      });
-    
+    window.addEventListener("locationchange", async function () {
       const pageViewSetting = exptMetricSettings
         .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
-    
+
       if (!!pageViewSetting) {
         const data = [{
-          type: 'PageView',
           route: window.location.href,
           eventName: pageViewSetting.eventName
         }];
-    
-        track(self.option.api!, self.option.secret, self.option.appType!, self.option.user!, data);
+
+        await self.netWorkService!.track(data);
       }
+    });
+  }
+
+  private async trackZeroCodingAndClicks(zeroCodeSettings: IZeroCode[], exptMetricSettings: IExptMetricSetting[]) {
+    const self = this;
+    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;//浏览器兼容
+  
+    var callback = async function (mutationsList, observer) {
+      if (mutationsList && mutationsList.length > 0) {
+        observer.disconnect();
+        await Promise.all([self.bindClickHandlers(exptMetricSettings), self.zeroCodeSettingsCheckVariation(zeroCodeSettings, observer)]);
+        observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+      }
+    };
+  
+    const observer = new MutationObserver(callback);
+    await Promise.all([this.bindClickHandlers(exptMetricSettings), this.zeroCodeSettingsCheckVariation(zeroCodeSettings, observer)]);
+    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+  }
+
+  private async bindClickHandlers(exptMetricSettings: IExptMetricSetting[]) {
+    const clickHandler = (event) => {
+      var target = event?.currentTarget as any;
+      const data = [{
+        type: 'Click',
+        route: window.location.href,
+        eventName: target.dataffceventname
+      }];
     
-      window.addEventListener("locationchange", function () {
-        const pageViewSetting = exptMetricSettings
-        .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
-    
-        if (!!pageViewSetting) {
-          const data = [{
-            route: window.location.href,
-            eventName: pageViewSetting.eventName
-          }];
-    
-          track(self.option.api!, self.option.secret, self.option.appType!, self.option.user!, data);
-        }
+      this.netWorkService?.track(data);
+    }
+
+    const clickSetting = exptMetricSettings
+    .find(em => em.eventType === EventType.Click && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
+  
+    if (!!clickSetting) {
+      const nodes = document.querySelectorAll(clickSetting.elementTargets);
+      nodes.forEach(node => {
+        node['dataffceventname'] = clickSetting.eventName;
+        node.removeEventListener('click', clickHandler);
+        node.addEventListener('click', clickHandler);
       });
     }
   }
+
+  private async zeroCodeSettingsCheckVariation(zeroCodeSettings: IZeroCode[], observer: MutationObserver) {
+    for(let zeroCodeSetting of zeroCodeSettings) {
+      const effectiveItems = zeroCodeSetting.items?.filter(it => isUrlMatch(UrlMatchType.Substring, it.url));
+      
+      if (zeroCodeSetting.featureFlagType === FeatureFlagType.Pretargeted) {
+        // 客户已经做好用户分流
+        for (let item of effectiveItems) {
+          let node = document.querySelector(item.cssSelector) as HTMLElement;
+          if (node !== null && node !== undefined) {
+            await throttleAsync(this.netWorkService!.user, () => this.netWorkService?.sendUserVariation(zeroCodeSetting.featureFlagKey, item.variationOptionId))();
+          }
+        }
+      } else {
+        if (!!effectiveItems && effectiveItems.length > 0) {
+          const result = Ffc.variation(zeroCodeSetting.featureFlagKey, ffcSpecialValue);
+    
+          if (result !== ffcSpecialValue) {
+            this.applyRules(effectiveItems, result);
+          }
+        } else {
+          if (zeroCodeSetting.items && zeroCodeSetting.items.length > 0) {
+            this.revertRules(zeroCodeSetting.items);
+          }
+        }
+      }
+    }
+  }
+
+  private revertRules (items: ICssSelectorItem[]) {
+    const cssSelectors = items.map(it => it.cssSelector).filter((v, i, a) => a.indexOf(v) === i).join(','); // the filter function returns unique values
+    let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
+    nodes.forEach(node => {
+      const style = {};
+      if (node.style.display === 'none') {
+        style['display'] = 'block';
+      }
+  
+      const rawStyle = node.getAttribute(`data-ffc-${ffcSpecialValue}`);
+      if (rawStyle !== null && rawStyle !== '') {
+        Object.assign(style, JSON.parse(rawStyle)); 
+      }
+  
+      Object.assign(node.style, style);
+    });
+  }
+  
+  private applyRules(items: ICssSelectorItem[], ffResult: string) {
+    const groupedItems: { [key: string]: ICssSelectorItem[] } = groupBy(items, 'variationValue');
+    
+    // hide items
+    for (let [variationValue, itms] of Object.entries(groupedItems)) {
+      if (variationValue !== ffResult) {
+        const cssSelectors = (itms as ICssSelectorItem[]).map(it => it.cssSelector).filter((v, i, a) => a.indexOf(v) === i).join(','); // the filter function returns unique values
+        let nodes = document.querySelectorAll(cssSelectors) as NodeListOf<HTMLElement>;
+        nodes.forEach(node => {
+          const { position, left, top } = node.style;
+          if (left !== '-99999px') {
+            const style = { position, left, top };
+            node.setAttribute(`data-ffc-${ffcSpecialValue}`, JSON.stringify(style));
+            Object.assign(node.style, { position: 'absolute', left: '-99999px', top: '-99999px' });
+          }
+        });
+      }
+    }
+  
+    // show items (revert hiding)
+    if (groupedItems[ffResult] && groupedItems[ffResult].length > 0) {
+      this.showOrModifyElements(groupedItems[ffResult]);
+    }
+  }
+
+  private showOrModifyElements(items: ICssSelectorItem[]) {
+    items?.forEach(item => {
+      let nodes = document.querySelectorAll(item.cssSelector) as NodeListOf<HTMLElement>;
+      if (item.action === 'show' || item.action === 'modify') {
+        nodes.forEach(node => {
+          const style = {};
+          if (node.style.display === 'none') {
+            style['display'] = 'block';
+          }
+      
+          const rawStyle = node.getAttribute(`data-ffc-${ffcSpecialValue}`);
+          if (rawStyle !== null && rawStyle !== '') {
+            Object.assign(style, JSON.parse(rawStyle)); 
+          }
+      
+          Object.assign(node.style, style);
+  
+          if (item.action === 'modify') {
+            // apply properties
+            item.htmlProperties?.forEach(p => {
+              node.setAttribute(p.name, p.value);
+            });
+  
+            // apply content
+            if (item.htmlContent) {
+              node.innerHTML = item.htmlContent;
+            }
+            
+            // apply style
+            extractCSS(item.style).forEach(css => {
+              node.style[css.name] = css.value;
+            })
+          }
+        });
+      }
+    });
+  }
+}
+
+export default new AutoCapture();

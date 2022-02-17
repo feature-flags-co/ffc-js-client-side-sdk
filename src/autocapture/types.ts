@@ -1,81 +1,40 @@
-// export interface IFFCUser {
-//     userName: string,
-//     email: string,
-//     country?: string,
-//     key: string,
-//     customizeProperties?: IFFCCustomizedProperty[]
-// }
-
 import { ICustomizedProperty, IUser } from "../types";
 
-// export interface IFFCCustomizedProperty {
-//     name: string,
-//     value: string | number | boolean
-// }
+export interface IZeroCode {
+    envId: number,
+    envSecret: string,
+    isActive: boolean,
+    featureFlagId: string,
+    featureFlagType: FeatureFlagType,
+    featureFlagKey: string,
+    items: ICssSelectorItem[]
+}
 
-// export interface IFFCJsClient {
-//     initialize: (environmentSecret: string, user?: IFFCUser, option?: IOption) => void,
-//     initUserInfo: (user: IFFCUser) => void,
-//     trackCustomEventAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
-//     trackCustomEvent: (data: IFFCCustomEvent[]) => boolean,
-//     trackAsync: (data: IFFCCustomEvent[]) => Promise<boolean>,
-//     track: (data: IFFCCustomEvent[]) => boolean,
-//     sendUserVariationAsync: (featureFlagKey: string, variationOptionId: number) => Promise<void>,
-//     variationAsync: (featureFlagKey: string, defaultResult?: string) => Promise<string>,
-//     variation: (featureFlagKey: string, defaultResult?: string) => string
-// }
+export interface IHtmlProperty {
+    id: string,
+    name: string,
+    value: string
+}
 
-// export interface IOption {
-//     baseUrl?: string,
-//     appType?: string,
-//     throttleWait?: number
-// }
+export interface ICSS {
+    name: string,
+    value: string | number
+}
 
-// export interface IZeroCode {
-//     envId: number,
-//     envSecret: string,
-//     isActive: boolean,
-//     featureFlagId: string,
-//     featureFlagType: FeatureFlagType,
-//     featureFlagKey: string,
-//     items: ICssSelectorItem[]
-// }
+export interface ICssSelectorItem {
+    cssSelector: string,
+    variationValue: string,
+    variationOptionId: number,
+    action: string,
+    htmlProperties: IHtmlProperty[],
+    htmlContent: string,
+    style: string,
+    url: string
+}
 
-// export interface IHtmlProperty {
-//     id: string,
-//     name: string,
-//     value: string
-// }
-
-// export interface ICSS {
-//     name: string,
-//     value: string | number
-// }
-
-// export interface ICssSelectorItem {
-//     cssSelector: string,
-//     variationValue: string,
-//     variationOptionId: number,
-//     action: string,
-//     htmlProperties: IHtmlProperty[],
-//     htmlContent: string,
-//     style: string,
-//     url: string
-// }
-
-// export enum FeatureFlagType {
-//     Classic = 1,
-//     Pretargeted = 2 // 已经预分流，无需我们的开关做用户分流
-// }
-
-export interface ICustomEvent {
-    secret?: string,
-    route?: string,
-    appType?: string,
-    eventName: string,
-    numericValue?: number,
-    customizedProperties?: ICustomizedProperty[],
-    user?: IUser
+export enum FeatureFlagType {
+    Classic = 1,
+    Pretargeted = 2 // 已经预分流，无需我们的开关做用户分流
 }
 
 export enum EventType {

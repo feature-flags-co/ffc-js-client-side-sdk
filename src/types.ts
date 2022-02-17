@@ -68,3 +68,13 @@ export interface IStreamResponse {
   eventType: StreamResponseEventType,
   featureFlags: IFeatureFlag[]
 }
+
+export interface ICustomEvent {
+  secret?: string,
+  route?: string,
+  appType?: string,
+  eventName: string,
+  numericValue?: number,
+  customizedProperties?: ICustomizedProperty[],
+  user?: IUser
+}

@@ -1,9 +1,7 @@
-import { ICustomEvent } from "./autocapture/types";
 import { websocketReconnectTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
-import { Store } from "./store";
-import { IFeatureFlagVariation, IStreamResponse, IUser } from "./types";
+import { ICustomEvent, IFeatureFlagVariation, IStreamResponse, IUser } from "./types";
 
 const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
 let retryCounter = 0;
@@ -66,7 +64,7 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
   });
 }
 
-async function postData(url: string = '', data: any = {}, headers: { [key: string]: string } = {}) {
+export async function post(url: string = '', data: any = {}, headers: { [key: string]: string } = {}) {
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -81,11 +79,27 @@ async function postData(url: string = '', data: any = {}, headers: { [key: strin
     logger.logDebug(err);
     return {};
   }
-
 }
 
-export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: string, user: IUser, variations: IFeatureFlagVariation[]) {
-  if (!envSecret || !user || !variations || variations.length === 0) {
+export async function get(url: string = '', headers: { [key: string]: string } = {}) {
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: Object.assign({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }, headers)
+    });
+
+    return response.status === 200 ? response.json() : {};
+  } catch (err) {
+    logger.logDebug(err);
+    return null;
+  }
+}
+
+export async function sendFeatureFlagInsights(api: string, secret: string, user: IUser, variations: IFeatureFlagVariation[]) {
+  if (!secret || !user || !variations || variations.length === 0) {
     return;
   }
 
@@ -108,30 +122,30 @@ export async function sendFeatureFlagInsights(apiBaseUrl: string, envSecret: str
       }))
     }];
 
-    await postData(`${apiBaseUrl}/api/public/analytics/track/feature-flags`, payload, { envSecret: envSecret });
+    await post(`${api}/api/public/analytics/track/feature-flags`, payload, { envSecret: secret });
   } catch (err) {
     logger.logDebug(err);
   }
 }
 
-export async function track(apiBaseUrl: string, envSecret: string, appType: string, user: IUser, data: ICustomEvent[]): Promise<void> {
+export async function track(api: string, secret: string, appType: string, user: IUser, data: ICustomEvent[]): Promise<void> {
   try {
-    const payload = JSON.stringify(data.map(d => Object.assign({}, {
-      secret: envSecret,
-      route: location.pathname,
-      numericValue: 1,
-      appType: appType,
-      user: {
-        fFUserName: user.userName,
-        fFUserEmail: user.email,
-        fFUserCountry: user.country,
-        fFUserKeyId: user.id,
-        fFUserCustomizedProperties: user.customizeProperties
-      }
-    }, d)));
+      const payload = JSON.stringify(data.map(d => Object.assign({}, {
+          secret: secret,
+          route: location.pathname,
+          numericValue: 1,
+          appType: appType,
+          user: {
+              fFUserName: user.userName,
+              fFUserEmail: user.email,
+              fFUserCountry: user.country,
+              fFUserKeyId: user.id,
+              fFUserCustomizedProperties: user.customizeProperties
+          }
+      }, d)));
 
-    await postData(`${apiBaseUrl}//ExperimentsDataReceiver/PushData`, payload, { envSecret: envSecret });
+      await post(`${api}/ExperimentsDataReceiver/PushData`, payload, { envSecret: secret });
   } catch (err) {
-    logger.logDebug(err);
+      logger.logDebug(err);
   }
 }

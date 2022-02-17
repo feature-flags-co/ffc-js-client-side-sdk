@@ -2,11 +2,12 @@ import { DevMode } from "./devmode";
 import { eventHub } from "./events";
 import { logger } from "./logger";
 import { Store } from "./store";
-import { connectWebSocket, sendFeatureFlagInsights } from "./network.service";
-import { IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
+import { connectWebSocket, sendFeatureFlagInsights, track } from "./network.service";
+import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, generateConnectionToken, validateOption } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedTopic, featureFlagInsightFlushTopic, websocketReconnectTopic } from "./constants";
+import autoCapture from "./autocapture/autocapture";
 
 
 function createorGetAnonymousUser(): IUser {
@@ -98,6 +99,7 @@ class Ffc {
 
     this._option = Object.assign({}, this._option, option, { api: (option.api || this._option.api)?.replace(/\/$/, '') });
 
+    autoCapture.init(this._option.api!, this._option.secret, this._option.appType!, this._option.user!);
     this.identify(option.user || createorGetAnonymousUser());
   }
 
@@ -106,6 +108,8 @@ class Ffc {
 
     this._store.userId = this._option.user.id;
     //setTimeout(() => this.bootstrap(), 20000);
+
+    autoCapture.identify(this._option.user);
     this.bootstrap();
   }
 
@@ -157,7 +161,7 @@ class Ffc {
     this._devMode.init(this._option.devModePassword || '');
   }
 
-  async dataSync(): Promise<any> {
+  private async dataSync(): Promise<any> {
     return new Promise<void>((resolve, reject) => {
       const serverUrl: any = this._option.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this._option.secret)}`;
       const timestamp = Math.max(...Object.values(this._store.getFeatureFlags()).map(ff => ff.timestamp), 0);
@@ -205,6 +209,11 @@ class Ffc {
   boolVariation(key: string, defaultResult: boolean): boolean {
     const variation = this._store.getVariation(key);
     return !!variation ? variation.toLocaleLowerCase() === 'true' : defaultResult;
+  }
+
+  async sendCustomEvent(data: ICustomEvent[]) {
+    data = data || [];
+    return await track(this._option.api!, this._option.secret, this._option.appType!, this._option.user!, data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
   }
 }
 
