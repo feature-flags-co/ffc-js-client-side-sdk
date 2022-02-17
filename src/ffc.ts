@@ -49,6 +49,7 @@ class Ffc {
     api: 'https://api.feature-flags.co',
     devModePassword: '',
     enableDataSync: true,
+    appType: 'javascript',
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
   };
 

@@ -130,7 +130,7 @@ export async function sendFeatureFlagInsights(api: string, secret: string, user:
 
 export async function track(api: string, secret: string, appType: string, user: IUser, data: ICustomEvent[]): Promise<void> {
   try {
-      const payload = JSON.stringify(data.map(d => Object.assign({}, {
+      const payload = data.map(d => Object.assign({}, {
           secret: secret,
           route: location.pathname,
           numericValue: 1,
@@ -142,7 +142,7 @@ export async function track(api: string, secret: string, appType: string, user: 
               fFUserKeyId: user.id,
               fFUserCustomizedProperties: user.customizeProperties
           }
-      }, d)));
+      }, d));
 
       await post(`${api}/ExperimentsDataReceiver/PushData`, payload, { envSecret: secret });
   } catch (err) {

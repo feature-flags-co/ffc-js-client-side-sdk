@@ -42,7 +42,7 @@ export class AutoCaptureNetworkService {
         }
 
         try {
-            const payload = JSON.stringify({
+            const payload = {
                 featureFlagKeyName: featureFlagKey,
                 environmentSecret: this.secret,
                 ffUserName: this.user.userName,
@@ -51,7 +51,7 @@ export class AutoCaptureNetworkService {
                 ffUserKeyId: this.user.id,
                 ffUserCustomizedProperties: this.user.customizeProperties,
                 variationOptionId
-            });
+            };
 
             await post(`${this.api}/Variation/SendUserVariation`, payload, { envSecret: this.secret });
         } catch (err) {
