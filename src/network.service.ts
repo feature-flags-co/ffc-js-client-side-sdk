@@ -21,11 +21,10 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
     setTimeout(() => {
       try {
         socket.send(JSON.stringify(payload));
+        sendPingMessage();
       } catch (err) {
         logger.logDebug(err);
       }
-      
-      sendPingMessage();
     }, 15000);
   }
 
