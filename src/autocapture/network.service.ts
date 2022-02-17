@@ -35,27 +35,4 @@ export class AutoCaptureNetworkService {
             return !!localStorage.getItem(zeroCodeSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string) : [];
         }
     }
-
-    async sendUserVariation(featureFlagKey: string, variationOptionId: number): Promise<void> {
-        if (variationOptionId === undefined || variationOptionId === null) {
-            return;
-        }
-
-        try {
-            const payload = {
-                featureFlagKeyName: featureFlagKey,
-                environmentSecret: this.secret,
-                ffUserName: this.user.userName,
-                ffUserEmail: this.user.email,
-                ffUserCountry: this.user.country,
-                ffUserKeyId: this.user.id,
-                ffUserCustomizedProperties: this.user.customizeProperties,
-                variationOptionId
-            };
-
-            await post(`${this.api}/Variation/SendUserVariation`, payload, { envSecret: this.secret });
-        } catch (err) {
-            logger.logDebug(err);
-        }
-    }
 }

@@ -5,7 +5,7 @@ import { FeatureFlagUpdateOperation, IDataStore, IFeatureFlag, StreamResponseEve
 
 const DataStoreStorageKey = 'ffcdatastore';
 
-export class Store {
+class Store {
 
   private _isDevMode: boolean = false;
   private _userId: string | null = null;
@@ -19,7 +19,7 @@ export class Store {
       const updatedFfs = Object.keys(data).map(key => {
         const changes = data[key];
         const ff = this._store.featureFlags[key];
-        const updatedFf = Object.assign({}, ff, { variation: changes['newValue'], version: Date.now() });
+        const updatedFf = Object.assign({}, ff, { variation: changes['newValue'], timestamp: Date.now() });
         return updatedFf;
       }).reduce((res, curr) => {
         res.featureFlags[curr.id] = Object.assign({}, curr, { timestamp: Date.now() });
@@ -48,6 +48,10 @@ export class Store {
 
   get isDevMode() {
     return this._isDevMode;
+  }
+
+  getFeatureFlag(key: string): IFeatureFlag {
+    return this._store.featureFlags[key];
   }
 
   getVariation(key: string): string {
@@ -234,3 +238,5 @@ export class Store {
     }
   }
 }
+
+export default new Store();

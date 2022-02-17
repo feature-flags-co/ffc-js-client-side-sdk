@@ -4,7 +4,9 @@ import { AutoCaptureNetworkService } from "./network.service";
 import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, IZeroCode, UrlMatchType, ICSS } from "./types";
 import { extractCSS, groupBy, isUrlMatch } from "./utils";
 import Ffc from "../ffc";
-import { throttleAsync } from "../utils";
+import { eventHub } from "../events";
+import store from "../store";
+import { featureFlagEvaluatedTopic } from "../constants";
 
 declare global {
   interface Window {
@@ -19,6 +21,7 @@ class AutoCapture {
   constructor() {}
 
   async init(api: string, secret: string, appType: string, user: IUser) {
+
     this.netWorkService = new AutoCaptureNetworkService(api!, secret, appType!, user!);
 
     const settings = await Promise.all([this.netWorkService.getActiveExperimentMetricSettings(), this.netWorkService.getZeroCodeSettings()]);
@@ -135,16 +138,32 @@ class AutoCapture {
         for (let item of effectiveItems) {
           let node = document.querySelector(item.cssSelector) as HTMLElement;
           if (node !== null && node !== undefined) {
-            await this.netWorkService?.sendUserVariation(zeroCodeSetting.featureFlagKey, item.variationOptionId);
+            // this send feature flag insights data
+            const featureFlag = store.getFeatureFlag(zeroCodeSetting.featureFlagKey);
+            if (!!featureFlag) {
+              eventHub.emit(featureFlagEvaluatedTopic, {
+                id: featureFlag.id,
+                timestamp: Date.now(),
+                sendToExperiment: featureFlag.sendToExperiment,
+                variation: featureFlag.variationOptions.find(o => o.value === item.variationValue)
+              });
+            }
           }
         }
       } else {
         if (!!effectiveItems && effectiveItems.length > 0) {
           const result = Ffc.variation(zeroCodeSetting.featureFlagKey, ffcSpecialValue);
-    
+  
           if (result !== ffcSpecialValue) {
             this.applyRules(effectiveItems, result);
           }
+
+          Ffc.on(`ff_update:${zeroCodeSetting.featureFlagKey}`, () => {
+            const result = Ffc.variation(zeroCodeSetting.featureFlagKey, ffcSpecialValue);
+            if (result !== ffcSpecialValue) {
+              this.applyRules(effectiveItems, result);
+            }
+          });
         } else {
           if (zeroCodeSetting.items && zeroCodeSetting.items.length > 0) {
             this.revertRules(zeroCodeSetting.items);

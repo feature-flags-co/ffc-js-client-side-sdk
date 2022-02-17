@@ -1,5 +1,6 @@
 import { IOption, IUser } from "./types";
 
+
 // generate default user info
 export function ffcguid() {
   let ffcHomePageGuid = localStorage.getItem("ffc-guid");
@@ -150,10 +151,8 @@ export function throttleAsync (key: string, callback: any): any {
         arg !== null
       ) {
         if (Array.isArray(arg)) {
-          debugger;
           return arg.map(a => ({...a, ...{timestamp: null}}))
         } else {
-          debugger;
           return {...arg, ...{timestamp: null}};
         }
       }

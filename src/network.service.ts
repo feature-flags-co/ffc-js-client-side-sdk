@@ -19,7 +19,12 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
     };
 
     setTimeout(() => {
-      socket.send(JSON.stringify(payload));
+      try {
+        socket.send(JSON.stringify(payload));
+      } catch (err) {
+        logger.logDebug(err);
+      }
+      
       sendPingMessage();
     }, 15000);
   }

@@ -1,7 +1,7 @@
-import { DevMode } from "./devmode";
+import devMode from "./devmode";
 import { eventHub } from "./events";
 import { logger } from "./logger";
-import { Store } from "./store";
+import store from "./store";
 import { connectWebSocket, sendFeatureFlagInsights, track } from "./network.service";
 import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, generateConnectionToken, validateOption } from "./utils";
@@ -41,8 +41,6 @@ class Ffc {
   private _readyEventEmitted: boolean = false;
   private _readyPromise: Promise<IFeatureFlagBase[]>;
 
-  private _devMode: DevMode;
-  private _store: Store = new Store();
   private _featureFlagInsightQueue: Queue<IFeatureFlagVariation> = new Queue<IFeatureFlagVariation>(1, featureFlagInsightFlushTopic);
   private _option: IOption = {
     secret: '',
@@ -54,10 +52,9 @@ class Ffc {
   };
 
   constructor() {
-    this._devMode = new DevMode(this._store);
     this._readyPromise = new Promise<IFeatureFlagBase[]>((resolve, reject) => {
       this.on('ready', () => {
-        resolve(mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
+        resolve(mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
       });
     });
 
@@ -66,7 +63,7 @@ class Ffc {
       this.dataSync().then(() => {
         if (!this._readyEventEmitted) {
           this._readyEventEmitted = true;
-          eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
+          eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
         }
       });
     });
@@ -107,7 +104,7 @@ class Ffc {
   identify(user: IUser): void {
     this._option.user = Object.assign({}, this._option.user, user);
 
-    this._store.userId = this._option.user.id;
+    store.userId = this._option.user.id;
     //setTimeout(() => this.bootstrap(), 20000);
 
     autoCapture.identify(this._option.user);
@@ -115,15 +112,15 @@ class Ffc {
   }
 
   activateDevMode(password?: string){
-    this._devMode.activateDevMode(password);
+    devMode.activateDevMode(password);
   }
 
   openDevModeEditor() {
-    this._devMode.openEditor();
+    devMode.openEditor();
   }
 
   quitDevMode() {
-    this._devMode.quit();
+    devMode.quit();
   }
 
   logout(): void {
@@ -143,29 +140,29 @@ class Ffc {
         }, {} as { [key: string]: IFeatureFlag })
       };
 
-      this._store.setFullData(data);
-      eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
+      store.setFullData(data);
+      eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
       logger.logDebug('bootstrapped with full data');
     }
 
     if (this._option.enableDataSync) {
       // start data sync
       this.dataSync().then(() => {
-        this._store.isDevMode = !!this._store.isDevMode;
+        store.isDevMode = !!store.isDevMode;
         if (!this._readyEventEmitted) {
           this._readyEventEmitted = true;
-          eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(this._store.getFeatureFlags()));
+          eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
         }
       });
     }
     
-    this._devMode.init(this._option.devModePassword || '');
+    devMode.init(this._option.devModePassword || '');
   }
 
   private async dataSync(): Promise<any> {
     return new Promise<void>((resolve, reject) => {
       const serverUrl: any = this._option.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this._option.secret)}`;
-      const timestamp = Math.max(...Object.values(this._store.getFeatureFlags()).map(ff => ff.timestamp), 0);
+      const timestamp = Math.max(...Object.values(store.getFeatureFlags()).map(ff => ff.timestamp), 0);
 
       connectWebSocket(serverUrl, this._option.user!, timestamp, (message: IStreamResponse) => {
         const { featureFlags } = message;
@@ -184,10 +181,10 @@ class Ffc {
               };
 
               if (message.eventType === StreamResponseEventType.full) {
-                this._store.setFullData(data);
+                store.setFullData(data);
                 logger.logDebug('synchonized with full data');
               } else {
-                this._store.updateBulkFromRemote(data);
+                store.updateBulkFromRemote(data);
                 logger.logDebug('synchonized with partial data');
               }
 
@@ -204,11 +201,11 @@ class Ffc {
   }
 
   variation(key: string, defaultResult: string): string {
-    return this._store.getVariation(key) || defaultResult;
+    return store.getVariation(key) || defaultResult;
   }
 
   boolVariation(key: string, defaultResult: boolean): boolean {
-    const variation = this._store.getVariation(key);
+    const variation = store.getVariation(key);
     return !!variation ? variation.toLocaleLowerCase() === 'true' : defaultResult;
   }
 

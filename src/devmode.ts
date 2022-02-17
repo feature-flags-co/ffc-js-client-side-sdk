@@ -1,6 +1,6 @@
 import { devModeBtnId, devModeEventName, devModeQueryStr, devModeStorageKey } from "./constants";
 import { eventHub } from "./events";
-import { Store } from "./store";
+import store from "./store";
 import { FeatureFlagUpdateOperation, IFeatureFlag } from "./types";
 import { addCss, makeElementDraggable } from "./utils";
 
@@ -139,7 +139,7 @@ function ffListHtml(featureFlags: { [key: string]: IFeatureFlag }): string {
   }).join('');
 }
 
-function enableDevMode(store: Store) {
+function enableDevMode() {
   // display dev mode icon
   const devModeContainer = document.createElement("div");
   devModeContainer.id = 'ffc-devmode-container';
@@ -214,13 +214,13 @@ function dispatchDevModeEvent() {
   }
 };
 
-function onDevModeChange(store: Store, oldValue: string, newValue: string) {
+function onDevModeChange(oldValue: string, newValue: string) {
   if (oldValue !== newValue) {
     if (newValue === 'true') {
       // make sure the document.body exists before enabling dev mode
       setTimeout(() => {
         store.isDevMode = true;
-        enableDevMode(store);
+        enableDevMode();
       }, 0);
     } else {
       // make sure the document.body exists before enabling dev mode
@@ -232,11 +232,11 @@ function onDevModeChange(store: Store, oldValue: string, newValue: string) {
   }
 }
 
-export class DevMode {
+class DevMode {
   private password?: string;
-  constructor(private store: Store) {
+  constructor() {
     eventHub.subscribe(`devmode_ff_${FeatureFlagUpdateOperation.devDataCreated}`, () => {
-      createFfEditor(this.store.getFeatureFlags());
+      createFfEditor(store.getFeatureFlags());
     });
   }
 
@@ -249,7 +249,7 @@ export class DevMode {
       window.addEventListener(devModeEventName, function (e) {
         const { key, oldValue, newValue } = (e as CustomEvent<DevModeEventInit>).detail;
         if (key === devModeStorageKey) {
-          onDevModeChange(self.store, oldValue, newValue);
+          onDevModeChange(oldValue, newValue);
         }
       });
 
@@ -267,8 +267,8 @@ export class DevMode {
       if (devMode === 'true') {
         // make sure the document.body exists before enabling dev mode
         setTimeout(() => {
-          self.store.isDevMode = true;
-          enableDevMode(self.store);
+          store.isDevMode = true;
+          enableDevMode();
         }, 0);
       }
     } else {
@@ -280,7 +280,7 @@ export class DevMode {
   activateDevMode(password?: string): void {
     if(!this.password || this.password === password){
       localStorage.setItem(devModeStorageKey, `${true}`);
-      onDevModeChange(this.store, '', 'true');
+      onDevModeChange('', 'true');
     }
   }
 
@@ -289,8 +289,9 @@ export class DevMode {
   }
 
   quit(){
-    onDevModeChange(this.store, '', 'false');
+    onDevModeChange('', 'false');
     localStorage.setItem(devModeStorageKey, `${false}`);
   }
 }
 
+export default new DevMode();
