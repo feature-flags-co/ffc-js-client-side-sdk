@@ -1,319 +1,153 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <title>监听js的html</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="../umd/ffc-sdk.js"></script>
+    <!-- <script async data-ffc-client="OWE2LTZiOWItNCUyMDIxMTExNTA5MDY1Ml9fNV9fMjhfXzU2X19kZWZhdWx0X2VmNzU2" src="../umd/ffc-sdk.js"></script> -->
+    <!-- <script async data-ffc-client='YzhlLTFmMGItNCUyMDIxMTExNTA3Mzk1MV9fMTZfXzIzX180N19fZGVmYXVsdF9mOGIzYQ==' src='../umd/ffc-sdk.js'></script> -->
+    <title>feature-flags.co</title>
 </head>
 
-<body>
-    <div>
-        <div class="abc bcd">
-            <div>
-                <div>
-                    GOGOGO
-                </div>
-            </div>
-        </div>
-        <div>
-            <nz-table _ngcontent-mqk-c146="" nzsize="small" class="ant-table-wrapper">
-                <nz-spin class="ant-spin-nested-loading">
-                    <!---->
-                    <!---->
-                    <div class="ant-spin-container ng-star-inserted">
-                        <!---->
-                        <div class="ant-table ant-table-small ant-table-fixed-header ant-table-ping-right">
-                            <!---->
-                            <nz-table-inner-scroll class="ant-table-container ng-star-inserted">
-                                <div class="ant-table-header nz-table-hide-scrollbar ng-star-inserted"
-                                    style="overflow: hidden scroll;">
-                                    <table nz-table-content="" tablelayout="fixed" style="table-layout: fixed;">
-                                        <col class="ng-star-inserted" style="width: 317px; min-width: 317px;">
-                                        <col class="ng-star-inserted" style="width: 317px; min-width: 317px;">
-                                        <col class="ng-star-inserted" style="width: 317px; min-width: 317px;">
-                                        <col class="ng-star-inserted" style="width: 317px; min-width: 317px;">
-                                        <!---->
-                                        <thead class="ant-table-thead ng-star-inserted">
-                                            <tr _ngcontent-mqk-c146=""
-                                                class="table-th-style ant-table-row ng-star-inserted">
-                                                <th _ngcontent-mqk-c146="" class="ant-table-cell">名称</th>
-                                                <th _ngcontent-mqk-c146="" class="ant-table-cell">状态</th>
-                                                <th _ngcontent-mqk-c146="" class="ant-table-cell">最近修改</th>
-                                                <th _ngcontent-mqk-c146="" nzalign="center" class="ant-table-cell"
-                                                    style="text-align: center;">操作</th>
-                                            </tr>
-                                            <!---->
-                                        </thead>
-                                        <!---->
-                                        <!---->
-                                    </table>
-                                </div>
-                                <div class="ant-table-body ng-star-inserted"
-                                    style="overflow-y: scroll; max-height: 520px;">
-                                    <table nz-table-content="" tablelayout="fixed" style="table-layout: fixed;">
-                                        <col class="ng-star-inserted" style="width: 317px; min-width: 317px;">
-                                        <col class="ng-star-inserted" style="width: 317px; min-width: 317px;">
-                                        <col class="ng-star-inserted" style="width: 317px; min-width: 317px;">
-                                        <col class="ng-star-inserted" style="width: 317px; min-width: 317px;">
-                                        <!---->
-                                        <!---->
-                                        <tbody _ngcontent-mqk-c146="" class="ant-table-tbody ng-star-inserted">
-                                            <tr nz-table-measure-row="" class="ant-table-measure-now ng-star-inserted">
-                                                <td class="nz-disable-td ng-star-inserted"
-                                                    style="padding: 0px; border: 0px; height: 0px;"></td>
-                                                <td class="nz-disable-td ng-star-inserted"
-                                                    style="padding: 0px; border: 0px; height: 0px;"></td>
-                                                <td class="nz-disable-td ng-star-inserted"
-                                                    style="padding: 0px; border: 0px; height: 0px;"></td>
-                                                <td class="nz-disable-td ng-star-inserted"
-                                                    style="padding: 0px; border: 0px; height: 0px;"></td>
-                                                <!---->
-                                            </tr>
-                                            <!---->
-                                            <!---->
-                                            <!---->
-                                            <tr _ngcontent-mqk-c146=""
-                                                class="table-tr-pointer ant-table-row ng-star-inserted">
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">experimentation</td>
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">
-                                                    <nz-switch _ngcontent-mqk-c146="" nzcheckedchildren="开"
-                                                        nzuncheckedchildren="关"
-                                                        class="ng-untouched ng-pristine ng-valid"><button nz-wave=""
-                                                            type="button" class="ant-switch ant-switch-checked"><span
-                                                                class="ant-switch-handle">
-                                                                <!---->
-                                                            </span><span class="ant-switch-inner">开
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                            </span>
-                                                            <div class="ant-click-animating-node"></div>
-                                                        </button></nz-switch>
-                                                </td>
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">2021-10-13 07:34:47
-                                                </td>
-                                                <td _ngcontent-mqk-c146="" style="text-align: center;"
-                                                    class="ant-table-cell"><a _ngcontent-mqk-c146="" nz-button=""
-                                                        nztype="link" style="color: #9A95CC;"
-                                                        class="ant-btn ant-btn-link">
-                                                        <!----><span class="ng-star-inserted">详情</span>
-                                                    </a></td>
-                                            </tr>
-                                            <tr _ngcontent-mqk-c146=""
-                                                class="table-tr-pointer ant-table-row ng-star-inserted">
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">flag-trigger</td>
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">
-                                                    <nz-switch _ngcontent-mqk-c146="" nzcheckedchildren="开"
-                                                        nzuncheckedchildren="关"
-                                                        class="ng-untouched ng-pristine ng-valid"><button nz-wave=""
-                                                            type="button" class="ant-switch ant-switch-checked"><span
-                                                                class="ant-switch-handle">
-                                                                <!---->
-                                                            </span><span class="ant-switch-inner">开
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                            </span>
-                                                            <div class="ant-click-animating-node"></div>
-                                                        </button></nz-switch>
-                                                </td>
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">2021-09-22 06:20:15
-                                                </td>
-                                                <td _ngcontent-mqk-c146="" style="text-align: center;"
-                                                    class="ant-table-cell"><a _ngcontent-mqk-c146="" nz-button=""
-                                                        nztype="link" style="color: #9A95CC;"
-                                                        class="ant-btn ant-btn-link">
-                                                        <!----><span class="ng-star-inserted">详情</span>
-                                                    </a></td>
-                                            </tr>
-                                            <tr _ngcontent-mqk-c146=""
-                                                class="table-tr-pointer ant-table-row ng-star-inserted">
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">approval-request</td>
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">
-                                                    <nz-switch _ngcontent-mqk-c146="" nzcheckedchildren="开"
-                                                        nzuncheckedchildren="关"
-                                                        class="ng-untouched ng-pristine ng-valid"><button nz-wave=""
-                                                            type="button" class="ant-switch ant-switch-checked"><span
-                                                                class="ant-switch-handle">
-                                                                <!---->
-                                                            </span><span class="ant-switch-inner">开
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                            </span>
-                                                            <div class="ant-click-animating-node"></div>
-                                                        </button></nz-switch>
-                                                </td>
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">2021-09-18 10:31:08
-                                                </td>
-                                                <td _ngcontent-mqk-c146="" style="text-align: center;"
-                                                    class="ant-table-cell"><a _ngcontent-mqk-c146="" nz-button=""
-                                                        nztype="link" style="color: #9A95CC;"
-                                                        class="ant-btn ant-btn-link">
-                                                        <!----><span class="ng-star-inserted">详情</span>
-                                                    </a></td>
-                                            </tr>
-                                            <tr _ngcontent-mqk-c146=""
-                                                class="table-tr-pointer ant-table-row ng-star-inserted">
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">主页 - 话术版本</td>
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">
-                                                    <nz-switch _ngcontent-mqk-c146="" nzcheckedchildren="开"
-                                                        nzuncheckedchildren="关"
-                                                        class="ng-untouched ng-pristine ng-valid"><button nz-wave=""
-                                                            type="button" class="ant-switch ant-switch-checked"><span
-                                                                class="ant-switch-handle">
-                                                                <!---->
-                                                            </span><span class="ant-switch-inner">开
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                                <!---->
-                                                            </span>
-                                                            <div class="ant-click-animating-node"></div>
-                                                        </button></nz-switch>
-                                                </td>
-                                                <td _ngcontent-mqk-c146="" class="ant-table-cell">2021-09-16 20:21:04
-                                                </td>
-                                                <td _ngcontent-mqk-c146="" style="text-align: center;"
-                                                    class="ant-table-cell"><a _ngcontent-mqk-c146="" nz-button=""
-                                                        nztype="link" style="color: #9A95CC;"
-                                                        class="ant-btn ant-btn-link">
-                                                        <!----><span class="ng-star-inserted">详情</span>
-                                                    </a></td>
-                                            </tr>
-                                            <!---->
-                                            <!---->
-                                        </tbody>
-                                        <!---->
-                                    </table>
-                                </div>
-                                <!---->
-                                <!---->
-                                <!---->
-                                <!---->
-                                <!---->
-                            </nz-table-inner-scroll>
-                            <!---->
-                            <!---->
-                            <!---->
-                        </div>
-                        <nz-pagination
-                            class="ant-table-pagination ant-table-pagination-right ant-pagination mini ng-star-inserted">
-                            <!---->
-                            <li nz-pagination-item="" title="上一页"
-                                class="ant-pagination-prev ant-pagination-disabled ng-star-inserted">
-                                <!---->
-                                <!----><button type="button" class="ant-pagination-item-link ng-star-inserted"
-                                    disabled="">
-                                    <!----><i nz-icon="" nztype="left"
-                                        class="anticon anticon-left ng-star-inserted"><svg viewBox="64 64 896 896"
-                                            focusable="false" fill="currentColor" width="1em" height="1em"
-                                            data-icon="left" aria-hidden="true">
-                                            <path
-                                                d="M724 218.3V141c0-6.7-7.7-10.4-12.9-6.3L260.3 486.8a31.86 31.86 0 000 50.3l450.8 352.1c5.3 4.1 12.9.4 12.9-6.3v-77.3c0-4.9-2.3-9.6-6.1-12.6l-360-281 360-281.1c3.8-3 6.1-7.7 6.1-12.6z">
-                                            </path>
-                                        </svg></i>
-                                    <!---->
-                                    <!---->
-                                </button>
-                                <!---->
-                                <!---->
-                                <!---->
-                                <!---->
-                                <!---->
-                            </li>
-                            <li nz-pagination-item="" title="1"
-                                class="ant-pagination-item ant-pagination-item-active ng-star-inserted">
-                                <!----><a class="ng-star-inserted">1</a>
-                                <!---->
-                                <!---->
-                                <!---->
-                                <!---->
-                                <!---->
-                                <!---->
-                            </li>
-                            <li nz-pagination-item="" title="下一页"
-                                class="ant-pagination-next ant-pagination-disabled ng-star-inserted">
-                                <!---->
-                                <!---->
-                                <!----><button type="button" class="ant-pagination-item-link ng-star-inserted"
-                                    disabled="">
-                                    <!----><i nz-icon="" nztype="right"
-                                        class="anticon anticon-right ng-star-inserted"><svg viewBox="64 64 896 896"
-                                            focusable="false" fill="currentColor" width="1em" height="1em"
-                                            data-icon="right" aria-hidden="true">
-                                            <path
-                                                d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z">
-                                            </path>
-                                        </svg></i>
-                                    <!---->
-                                    <!---->
-                                </button>
-                                <!---->
-                                <!---->
-                                <!---->
-                                <!---->
-                            </li>
-                            <!---->
-                            <!---->
-                            <!---->
-                            <!---->
-                            <!---->
-                        </nz-pagination>
-                        <!---->
-                        <!---->
-                        <!---->
-                        <!---->
-                    </div>
-                    <!---->
-                </nz-spin>
-                <!---->
-                <!---->
-            </nz-table>
-        </div>
-        <ul class="abc bcd" style="display:none">
-            <li>张三公司 1</li>
-            <li>李四公司 1</li>
-            <li>王二麻子公司 1</li>
-        </ul>
-        <ul class="gongsi">
-            <li>张三公司</li>
-            <li>李四公司</li>
-            <li>王二麻子公司</li>
-        </ul>
-        <ul class="gongsi">
-            <li>张三公司</li>
-            <li>李四公司</li>
-            <li>王二麻子公司</li>
-        </ul>
-    </div>
+<body style="background-color: rgb(217 239 233);">
+    <div class="welcome"><span>欢迎新同学</span> <a href="#">Onboarding</a></div>
+    <div class="welcomeb"><span>欢迎新同学b</span> <a href="#">Onboardingb</a></div>
+    <div id="hide-element" class="anniu">隐藏我</div>
+    <div id="activate-devmode" class="anniu">activate devmode</div>
+    <div id="show-devmode-editor" class="anniu">display dev mode editor</div>
+    <div id="quit-devmode" class="anniu">quit devmode</div>
+    <div id="color-ff">COLOR</div>
+    <style>
+        .row {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #version-a {
+            display: none;
+        }
+
+        #version-b {
+            display: none;
+        }
+
+        #version-c {
+            display: none;
+        }
+    </style>
+
+    <script type="text/javascript">
+
+
+     window.onload = async (event) => {
+        const option = {
+            secret: 'MzZlLTY1MTAtNCUyMDIxMTEwMTE0NTIwNF9fNV9fNl9fMTJfX2RlZmF1bHRfYzVlNzU=', // user your own env secret
+            api: 'https://ffc-api-ce2-dev.chinacloudsites.cn',
+            anonymous: true,
+            // devModePassword: '123abc',
+            // user: {
+            //     id: '123',
+            //     userName: '123',
+            //     email:'123@aa.com'
+            // }
+        };
+
+        Ffc.init(option);
+
+        // Ffc.on('ready', (data) => {
+        //     console.log(data);
+        // })
+
+        // let zerocode = Ffc.boolVariation('测试', true);
+        // if (zerocode === true) {
+        //     document.getElementById('hide-element').style.display = 'block';
+        // } else {
+        //     document.getElementById('hide-element').style.display = 'none';
+        // }
+
+        // Ffc.on('ff_update:测试', (d) => {
+        //     let zerocode = Ffc.boolVariation('测试', true);
+        //     if (zerocode === true) {
+        //         document.getElementById('hide-element').style.display = 'block';
+        //     } else {
+        //         document.getElementById('hide-element').style.display = 'none';
+        //     }
+        // });
+        
+        //let userName = Date.now();
+
+        // 初始化sdk，传入环境Secret Key和用户信息
+        //FFCJsClient.initialize('MzZlLTY1MTAtNCUyMDIxMTEwMTE0NTIwNF9fNV9fNl9fMTJfX2RlZmF1bHRfYzVlNzU=', null, {baseUrl: 'https://ffc-api-ce2-dev.chinacloudsites.cn'});
+
+        // 初始化用户信息，通常这一步会在登录后被调用
+        // FFCJsClient.initUserInfo({
+        //     userName: 'sdk-sample-js-1252',
+        //     email: 'abc@myemail.com',
+        //     key: 'sdk-sample-js-1252',
+        //     customizeProperties: [
+        //         {
+        //             name: "外放地址",
+        //             value: "?from=zhihu&group=pm"
+        //         }
+        //     ]
+        // });
+        
+      
+
+
+        // let data = [{
+        //     type: 'Click',
+        //     route: window.location.href,
+        //     eventName: 'click event'
+        // }];
+
+        // FFCJsClient.trackAsync(data);
+
+        // data = [{
+        //     type: 'PageView',
+        //     route: window.location.href,
+        //     eventName: 'pageview event'
+        // }];
+
+        // FFCJsClient.trackAsync(data);
+        // document.addEventListener("click", async function (e) {
+        //     if (e.target && e.target.innerText == '使用文档' ||
+        //         e.target && e.target.innerText == '开始使用') {
+
+        //         let rt = await FFCJsClient.trackCustomEventAsync([
+        //             {
+        //                 eventName: "开始使用点击事件"
+        //             }
+        //         ]);
+        //         if (rt == true)
+        //             alert("事件发送成功");
+        //         else
+        //             alert("事件发送失败");
+        //     }
+        // });
+
+        // var result = {};
+        // for(let i = 500; i < 1000; i++) {
+        //     FFCJsClient.initUserInfo({
+        //         userName: `sdk-sample-js-${i}`,
+        //         email: `sdk-sample-js-${i}@myemail.com`,
+        //         key: `sdk-sample-js-${i}`
+        //     });
+            
+        //     let variation = FFCJsClient.variation('kaiguan2', 'bbbbb');
+        //     if (!result[variation]) {
+        //         result[variation] = 0;
+        //     }
+
+        //     result[variation] = result[variation] + 1;
+        // }
+
+        // console.log(result);
+     }
+    </script>
 </body>
-
-
-
-<script src="../umd/index.js"></script>
-<script type="text/javascript">
-
-    let envKey = 'YjRlLWY1YjEtNCUyMDIxMDYwNzA2NTYwOF9fMl9fM19fN19fZGVmYXVsdF84NDNlMw==';
-    FFCJsClient.initialize(envKey, null, {baseUrl: 'http://localhost:5001'});
-
-    FFCJsClient.initUserInfo({
-        userName: 'local-debug-user-007',
-        email: '',
-        key: 'local-debug-user-007',
-        customizeProperties: []
-    });
-
-</script>
-
-
-<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 
 </html>

@@ -135,3 +135,51 @@ export function generateConnectionToken(text: string): string {
 }
 
 /********************** encode text end *****************************/
+
+const API_CALL_RESULTS : {[key: string]: string} = {};
+const FOOT_PRINTS: string[] = [];
+let _throttleWait: number = 5 * 60 * 1000; // millionseconds
+export function throttleAsync (key: string, callback: any): any {
+  let waiting = false; 
+
+  let getFootprint = (args: any): string => {
+    const params = args.map(arg => {
+      if (
+        typeof arg === 'object' &&
+        typeof arg !== "function" &&
+        arg !== null
+      ) {
+        if (Array.isArray(arg)) {
+          debugger;
+          return arg.map(a => ({...a, ...{timestamp: null}}))
+        } else {
+          debugger;
+          return {...arg, ...{timestamp: null}};
+        }
+      }
+
+      return arg;
+    });
+
+    return key + JSON.stringify(params);
+  };
+
+  return async function (...args) {
+    const footprint = getFootprint(args);
+    const idx = FOOT_PRINTS.findIndex(f => f === footprint);
+    if (!waiting || idx === -1) {
+      waiting = true;
+      if (idx === -1) {
+        FOOT_PRINTS.push(footprint);
+      }
+      
+      API_CALL_RESULTS[footprint] = await callback.apply(null, args);
+      
+      setTimeout(function () {
+          waiting = false;
+      }, _throttleWait);
+    }
+
+    return API_CALL_RESULTS[footprint];
+  }
+}
