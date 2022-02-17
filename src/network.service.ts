@@ -21,7 +21,7 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
     setTimeout(() => {
       socket.send(JSON.stringify(payload));
       sendPingMessage();
-    }, 5000);
+    }, 15000);
   }
 
   // Connection opened
