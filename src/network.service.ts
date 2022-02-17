@@ -20,12 +20,16 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
 
     setTimeout(() => {
       try {
-        socket.send(JSON.stringify(payload));
-        sendPingMessage();
+        if (socket.readyState === socket.OPEN) {
+          socket.send(JSON.stringify(payload));
+          sendPingMessage();
+        } else {
+          logger.logDebug(`socket closed at ${new Date()}`);
+        }
       } catch (err) {
         logger.logDebug(err);
       }
-    }, 15000);
+    }, 18000);
   }
 
   // Connection opened
