@@ -10,6 +10,8 @@ if (html) {
 
 import Ffc from './ffc';
 import { IOption } from './types';
+// import pkg from '../package.json';
+import { logger } from './logger';
 
 const script = document.querySelector('script[data-ffc-client]');
 const envSecret = script?.getAttribute('data-ffc-client')
@@ -22,5 +24,12 @@ if (script && envSecret) {
   };
   Ffc.init(option);
 }
+
+async function printVersion() {
+  const pkg = await import('../package.json');
+  logger.logDebug(pkg.version);
+}
+
+printVersion();
 
 export { Ffc }

@@ -12,6 +12,18 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
   const startTime = Date.now();
   const socket = new WebSocket(url);
 
+  function sendPingMessage() {
+    const payload = {
+      messageType: 'ping',
+      data: null
+    };
+
+    setTimeout(() => {
+      socket.send(JSON.stringify(payload));
+      sendPingMessage();
+    }, 5000);
+  }
+
   // Connection opened
   socket.addEventListener('open', function (event) {
     retryCounter = 0;
@@ -33,6 +45,8 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
     };
 
     socket.send(JSON.stringify(payload));
+
+    sendPingMessage();
   });
 
   // Connection closed

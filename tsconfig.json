@@ -8,7 +8,9 @@
     "target": "es5",
     "allowJs": true,
     "sourceMap": true,
-    "declaration": true
+    "declaration": true,
+    "moduleResolution": "Node",
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*.ts",
