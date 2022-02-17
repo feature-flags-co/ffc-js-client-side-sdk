@@ -2,6 +2,7 @@ import { websocketReconnectTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
 import { ICustomEvent, IFeatureFlagVariation, IStreamResponse, IUser } from "./types";
+import { ffcguid, throttleAsync } from "./utils";
 
 const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
 let retryCounter = 0;
@@ -98,7 +99,7 @@ export async function get(url: string = '', headers: { [key: string]: string } =
   }
 }
 
-export async function sendFeatureFlagInsights(api: string, secret: string, user: IUser, variations: IFeatureFlagVariation[]) {
+export const sendFeatureFlagInsights = throttleAsync(ffcguid(), async (api: string, secret: string, user: IUser, variations: IFeatureFlagVariation[]) => {
   if (!secret || !user || !variations || variations.length === 0) {
     return;
   }
@@ -126,26 +127,26 @@ export async function sendFeatureFlagInsights(api: string, secret: string, user:
   } catch (err) {
     logger.logDebug(err);
   }
-}
+})
 
 export async function track(api: string, secret: string, appType: string, user: IUser, data: ICustomEvent[]): Promise<void> {
   try {
-      const payload = data.map(d => Object.assign({}, {
-          secret: secret,
-          route: location.pathname,
-          numericValue: 1,
-          appType: appType,
-          user: {
-              fFUserName: user.userName,
-              fFUserEmail: user.email,
-              fFUserCountry: user.country,
-              fFUserKeyId: user.id,
-              fFUserCustomizedProperties: user.customizeProperties
-          }
-      }, d));
+    const payload = data.map(d => Object.assign({}, {
+      secret: secret,
+      route: location.pathname,
+      numericValue: 1,
+      appType: appType,
+      user: {
+        fFUserName: user.userName,
+        fFUserEmail: user.email,
+        fFUserCountry: user.country,
+        fFUserKeyId: user.id,
+        fFUserCustomizedProperties: user.customizeProperties
+      }
+    }, d));
 
-      await post(`${api}/ExperimentsDataReceiver/PushData`, payload, { envSecret: secret });
+    await post(`${api}/ExperimentsDataReceiver/PushData`, payload, { envSecret: secret });
   } catch (err) {
-      logger.logDebug(err);
+    logger.logDebug(err);
   }
 }

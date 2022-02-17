@@ -38,7 +38,7 @@ export class AutoCaptureNetworkService {
 
     async sendUserVariation(featureFlagKey: string, variationOptionId: number): Promise<void> {
         if (variationOptionId === undefined || variationOptionId === null) {
-          return;
+            return;
         }
 
         try {
@@ -57,5 +57,5 @@ export class AutoCaptureNetworkService {
         } catch (err) {
             logger.logDebug(err);
         }
-      }
+    }
 }

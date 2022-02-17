@@ -2,8 +2,9 @@ import { IUser } from "../types";
 import { ffcSpecialValue } from "./constants";
 import { AutoCaptureNetworkService } from "./network.service";
 import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, IZeroCode, UrlMatchType, ICSS } from "./types";
-import { extractCSS, groupBy, isUrlMatch, throttleAsync } from "./utils";
+import { extractCSS, groupBy, isUrlMatch } from "./utils";
 import Ffc from "../ffc";
+import { throttleAsync } from "../utils";
 
 declare global {
   interface Window {
@@ -134,7 +135,7 @@ class AutoCapture {
         for (let item of effectiveItems) {
           let node = document.querySelector(item.cssSelector) as HTMLElement;
           if (node !== null && node !== undefined) {
-            await throttleAsync(this.netWorkService!.user, () => this.netWorkService?.sendUserVariation(zeroCodeSetting.featureFlagKey, item.variationOptionId))();
+            await this.netWorkService?.sendUserVariation(zeroCodeSetting.featureFlagKey, item.variationOptionId);
           }
         }
       } else {
