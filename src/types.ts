@@ -14,7 +14,7 @@ export interface IUser {
   email: string,
   country?: string,
   id: string,
-  customizeProperties?: ICustomizedProperty[]
+  customizedProperties?: ICustomizedProperty[]
 }
 
 export interface ICustomizedProperty {
@@ -41,6 +41,7 @@ export interface IFeatureFlagBase {
   id: string, // the keyname
   variation: string,
 }
+
 export interface IFeatureFlag extends IFeatureFlagBase{
   sendToExperiment: boolean,
   timestamp: number,

@@ -37,7 +37,7 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
     retryCounter = 0;
 
     logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
-    const { userName, email, country, id, customizeProperties } = user;
+    const { userName, email, country, id, customizedProperties } = user;
     const payload = {
       messageType: 'data-sync',
       data: {
@@ -46,7 +46,7 @@ export function connectWebSocket(url: string, user: IUser, timestamp: number, on
           email,
           country,
           userKeyId: id,
-          customizeProperties,
+          customizedProperties,
         },
         timestamp
       }
@@ -127,13 +127,13 @@ export const sendFeatureFlagInsights = throttleAsync(ffcguid(), async (api: stri
   }
 
   try {
-    const { userName, email, country, id, customizeProperties } = user;
+    const { userName, email, country, id, customizedProperties } = user;
     const payload = [{
       userName,
       email,
       country,
       UserKeyId: id,
-      UserCustomizedProperties: customizeProperties,
+      UserCustomizedProperties: customizedProperties,
       userVariations: variations.map(v => ({
         featureFlagKeyName: v.id,
         sendToExperiment: v.sendToExperiment,
@@ -163,7 +163,7 @@ export async function track(api: string, secret: string, appType: string, user: 
         fFUserEmail: user.email,
         fFUserCountry: user.country,
         fFUserKeyId: user.id,
-        fFUserCustomizedProperties: user.customizeProperties
+        fFUserCustomizedProperties: user.customizedProperties
       }
     }, d));
 

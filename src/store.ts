@@ -155,16 +155,11 @@ class Store {
   }
 
   private _emitUpdateEvents(updatedFeatureFlags: any[]): void {
-    updatedFeatureFlags.forEach(({ id, operation, data }) => {
-      eventHub.emit(`ff_${operation}:${data.id}`, data);
-    });
+    if (updatedFeatureFlags.length > 0) {
+      updatedFeatureFlags.forEach(({ id, operation, data }) => eventHub.emit(`ff_${operation}:${data.id}`, data));
 
-    eventHub.emit(`ff_${FeatureFlagUpdateOperation.update}`, updatedFeatureFlags.reduce((res, curr) => {
-      const { id, oldValue, newValue } = curr.data;
-      res[id] = res[id] || { id, oldValue, newValue };
-
-      return res;
-    }, {}));
+      eventHub.emit(`ff_${FeatureFlagUpdateOperation.update}`, updatedFeatureFlags.map(item => item.data));
+    }
   }
 
   private _dumpToStorage(store?: IDataStore): void {
@@ -221,7 +216,6 @@ class Store {
         });
 
         this._store = storageData;
-
         this._emitUpdateEvents(updatedFeatureFlags);
       } else {
         this._store = {

@@ -93,7 +93,7 @@ The complete list of the available parameters in option:
   - **id**: the unique identifier. **mandatory**
   - **email**: can be useful when you configure your feature flag rules. **not mandatory**
   - **country**: can be useful when you configure your feature flag rules. **not mandatory**
-  - **customizeProperties**: any customized properties you want to send to the back end. It is extremely powerful when you define targeting rules or segments. **not mandatory**
+  - **customizedProperties**: any customized properties you want to send to the back end. It is extremely powerful when you define targeting rules or segments. **not mandatory**
      - it must have the following format:
      ```json
       [{
