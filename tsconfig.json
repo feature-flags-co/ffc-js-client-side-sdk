@@ -7,10 +7,8 @@
     "lib": [ "es2019", "dom" ],
     "target": "es5",
     "allowJs": true,
-    "sourceMap": true,
-    "declaration": true,
-    "moduleResolution": "Node",
-    "resolveJsonModule": true
+    "sourceMap": false,
+    "declaration": true
   },
   "include": [
     "src/**/*.ts",

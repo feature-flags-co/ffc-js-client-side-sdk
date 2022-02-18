@@ -6,7 +6,7 @@ const baseConfig = {
     [`ffc-sdk-${package.version}`]: './src/umd.ts',
     [`ffc-sdk`]: './src/umd.ts'
   },
-  devtool: 'source-map',
+  //devtool: 'source-map',
   module: {
     rules: [
       {
@@ -14,6 +14,15 @@ const baseConfig = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.ts$/,
+        loader: 'string-replace-loader',
+        options: {
+          search: '__VERSION__',
+          replace: package.version,
+          flags: 'g'
+        }
+      }
     ],
   },
   resolve: {
