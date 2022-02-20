@@ -2,7 +2,7 @@ import { devModeBtnId, devModeEventName, devModeQueryStr, devModeStorageKey } fr
 import { eventHub } from "./events";
 import store from "./store";
 import { FeatureFlagUpdateOperation, IFeatureFlag } from "./types";
-import { addCss, makeElementDraggable } from "./utils";
+import { addCss, makeElementDraggable, throttle } from "./utils";
 
 //const DevModeIconBtnUrl = 'https://portal.feature-flags.co/assets/ff_logo.png';
 const DevModeIconBtnData = 'data:image/png;base64,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';
@@ -12,29 +12,38 @@ class DevModeEventInit {
   oldValue: any;
 }
 
+function addFfEditorFFListChangeListener(ffEditorContainer: HTMLDivElement, featureFlags: { [key: string]: IFeatureFlag }) {
+// ff variation change
+ffEditorContainer.querySelectorAll("#ffc-ff-editor-container .ff-list").forEach(node => {
+  node.addEventListener('change', (ev) => {
+    const target = <HTMLSelectElement>ev.target;
+    const id: string = target?.getAttribute('data-id') || '';
+    const value = target?.value;
+
+    const ff = featureFlags[id];
+    const data = {
+      id,
+      oldValue: ff.variation,
+      newValue: value
+    };
+
+    eventHub.emit(`devmode_ff_${FeatureFlagUpdateOperation.update}`, { [id]: data });
+  });
+});
+}
+
 function createFfEditor(featureFlags: { [key: string]: IFeatureFlag }) {
-  const query = (<HTMLInputElement>document.getElementById('ff-editor-search-query'))?.value?.trim() || '';
-  let ffEditorContainer = document.getElementById('ffc-ff-editor-container');
-
-  let left = "25%";
-  let top = "50px";
-  if (ffEditorContainer) {
-    left = ffEditorContainer.style.left;
-    top = ffEditorContainer.style.top;
-    ffEditorContainer.remove();
-  }
-
-  const editorTemplate = `
+  const ffEditorContainer = document.createElement("div");
+  ffEditorContainer.id = 'ffc-ff-editor-container';
+  ffEditorContainer.innerHTML = `
     <div id="ff-editor-header" style="display: flex;justify-content: space-between;cursor:move">
-      <div style="font-size: 20px;font-weight: 500;padding: 10px 20px;">Developer mode (play with feature flags locally)</div>
+      <div style="font-size: 20px;;padding: 10px 20px;">Developer mode (play with feature flags locally)</div>
       <div id="ffc-ff-editor-close" style="font-size: 25px;padding: 6px 20px;cursor: pointer;font-weight:600;"></div>
     </div>
     <div id="ff-editor-search-container" style="border-top: 1px solid #f0f0f0;display: flex;justify-content: center;padding-top: 20px;margin-bottom: 15px;">
-      <input value="${query}" id="ff-editor-search-query" style="width: 80%;border-radius: 5px;border: 1px solid #222222;padding:0 10px" type="text"/> 
-      <button id="ff-editor-search-btn" style="background-color: #fff;border-radius: 20px;padding: 5px 10px;margin-left: 10px;box-sizing: border-box;border: 1px solid #222222;cursor:pointer;">Search</button> 
+      <input autofocus placeholder="Search" id="ff-editor-search-query" style="width:90%;height:30px;border-radius: 5px;border: 1px solid #222222;padding:0 10px" type="text"/> 
     </div>
     <div id="ff-editor-content" style="max-height:550px;overflow-y:auto;padding:24px 24px 0 24px;">
-      #{{FF}}
     </div>
     <div style="padding: 20px; text-align: right;">
       <button id="ff-editor-reset-btn" style="background-color: #fff;padding: 5px 10px;margin-left: 10px;box-sizing: border-box;border:none;color:#1890ff;cursor:pointer;"> Reset from remote data </button>
@@ -43,10 +52,6 @@ function createFfEditor(featureFlags: { [key: string]: IFeatureFlag }) {
       #ffc-ff-editor-container #ffc-ff-editor-close:after{
         display: inline-block;
         content: "\\00d7"; /* This will render the 'X' */
-      }
-      #ffc-ff-editor-container #ff-editor-search-btn:hover{
-        color: #40a9ff;
-        border-color: #40a9ff !important;
       }
       #ffc-ff-editor-container #ff-editor-search-query:hover,#ffc-ff-editor-container #ff-editor-search-query:focus,#ffc-ff-editor-container #ff-editor-search-query:active{
         border-color: #40a9ff !important;
@@ -59,8 +64,8 @@ function createFfEditor(featureFlags: { [key: string]: IFeatureFlag }) {
     </style>
   `;
 
-  ffEditorContainer = document.createElement("div");
-  ffEditorContainer.id = 'ffc-ff-editor-container';
+  let left = "25%";
+  let top = "50px";
   addCss(ffEditorContainer, {
     "position": "absolute",
     "left": left,
@@ -70,28 +75,33 @@ function createFfEditor(featureFlags: { [key: string]: IFeatureFlag }) {
     "border": "1px grey solid",
     "border-radius": "5px",
     "box-shadow": "0 8px 8px -4px lightblue",
-    "background-color": "#fff"
+    "background-color": "#fff",
+    "font-family": `Sohne, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+		'Droid Sans', 'Helvetica Neue', sans-serif`
   });
 
-  if (query && query.length > 0) {
-    const results = Object.keys(featureFlags).filter(key => key.indexOf(query.toLocaleLowerCase()) !== -1).reduce((res, curr) => {
-      res[curr] = featureFlags[curr];
-      return res;
-    }, {}) as { [key: string]: IFeatureFlag };
+  ffEditorContainer!.querySelector('#ff-editor-content')!.innerHTML = ffListHtml(featureFlags);
 
-    ffEditorContainer.innerHTML = editorTemplate.replace(/#{{FF}}/ig, ffListHtml(results));
-  } else {
-    ffEditorContainer.innerHTML = editorTemplate.replace(/#{{FF}}/ig, ffListHtml(featureFlags));
-  }
+  // search query change
+  ffEditorContainer.querySelector('#ff-editor-search-query')?.addEventListener('keyup', throttle((ev) => {
+    const query = (<HTMLInputElement>document.getElementById('ff-editor-search-query'))?.value?.trim() || '';
+    if (query && query.length > 0) {
+      const results = Object.keys(featureFlags).filter(key => key.indexOf(query.toLocaleLowerCase()) !== -1).reduce((res, curr) => {
+        res[curr] = featureFlags[curr];
+        return res;
+      }, {}) as { [key: string]: IFeatureFlag };
+
+      ffEditorContainer!.querySelector('#ff-editor-content')!.innerHTML = ffListHtml(results);
+    } else {
+      ffEditorContainer!.querySelector('#ff-editor-content')!.innerHTML = ffListHtml(featureFlags);
+    }
+
+    addFfEditorFFListChangeListener(ffEditorContainer, featureFlags);
+  }, 200));
 
   // close button click handler
   ffEditorContainer.querySelector("#ffc-ff-editor-close")?.addEventListener('click', (ev) => {
     document.getElementById('ffc-ff-editor-container')?.remove();
-  });
-
-  // search click handler
-  ffEditorContainer.querySelector("#ff-editor-search-btn")?.addEventListener('click', (ev) => {
-    createFfEditor(featureFlags);
   });
 
   // reset button click
@@ -100,22 +110,7 @@ function createFfEditor(featureFlags: { [key: string]: IFeatureFlag }) {
   });
 
   // ff variation change
-  ffEditorContainer.querySelectorAll("#ffc-ff-editor-container .ff-list").forEach(node => {
-    node.addEventListener('change', (ev) => {
-      const target = <HTMLSelectElement>ev.target;
-      const id: string = target?.getAttribute('data-id') || '';
-      const value = target?.value;
-
-      const ff = featureFlags[id];
-      const data = {
-        id,
-        oldValue: ff.variation,
-        newValue: value
-      };
-
-      eventHub.emit(`devmode_ff_${FeatureFlagUpdateOperation.update}`, { [id]: data });
-    });
-  });
+  addFfEditorFFListChangeListener(ffEditorContainer, featureFlags);
 
   document.body.appendChild(ffEditorContainer);
   makeElementDraggable(ffEditorContainer);
@@ -295,3 +290,4 @@ class DevMode {
 }
 
 export default new DevMode();
+

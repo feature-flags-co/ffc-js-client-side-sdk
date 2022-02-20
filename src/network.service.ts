@@ -132,8 +132,8 @@ export const sendFeatureFlagInsights = throttleAsync(ffcguid(), async (api: stri
       userName,
       email,
       country,
-      UserKeyId: id,
-      UserCustomizedProperties: customizedProperties,
+      userKeyId: id,
+      userCustomizedProperties: customizedProperties,
       userVariations: variations.map(v => ({
         featureFlagKeyName: v.id,
         sendToExperiment: v.sendToExperiment,

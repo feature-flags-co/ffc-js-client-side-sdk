@@ -136,6 +136,13 @@ export function generateConnectionToken(text: string): string {
 }
 
 /********************** encode text end *****************************/
+export function throttle(fn: Function, ms: number) {
+  let timer:any = 0
+  return function(...args) {
+    clearTimeout(timer)
+    timer = setTimeout(fn.bind(null, ...args), ms || 0)
+  }
+}
 
 const API_CALL_RESULTS : {[key: string]: string} = {};
 const FOOT_PRINTS: string[] = [];
