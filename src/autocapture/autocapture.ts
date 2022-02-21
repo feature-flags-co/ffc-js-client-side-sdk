@@ -1,12 +1,10 @@
-import { IUser } from "../types";
-import { ffcSpecialValue } from "./constants";
-import { AutoCaptureNetworkService } from "./network.service";
-import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, IZeroCode, UrlMatchType, ICSS } from "./types";
-import { extractCSS, groupBy, isUrlMatch } from "./utils";
 import Ffc from "../ffc";
 import { eventHub } from "../events";
 import store from "../store";
 import { featureFlagEvaluatedTopic } from "../constants";
+import { networkService } from "../network.service";
+import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, IZeroCode, UrlMatchType } from "../types";
+import { extractCSS, groupBy, isUrlMatch } from "../utils";
 
 declare global {
   interface Window {
@@ -15,26 +13,20 @@ declare global {
   }
 }
 
+const ffcSpecialValue = '___071218__';
+
 class AutoCapture {
-  private netWorkService?: AutoCaptureNetworkService;
 
   constructor() {}
 
-  async init(api: string, secret: string, appType: string, user: IUser) {
-
-    this.netWorkService = new AutoCaptureNetworkService(api!, secret, appType!, user!);
-
-    const settings = await Promise.all([this.netWorkService.getActiveExperimentMetricSettings(), this.netWorkService.getZeroCodeSettings()]);
+  async init() {
+    const settings = await Promise.all([networkService.getActiveExperimentMetricSettings(), networkService.getZeroCodeSettings()]);
   
     await Promise.all([this.capturePageViews(settings[0]), this.trackZeroCodingAndClicks(settings[1], settings[0])]);
     const html = document.querySelector('html');
     if (html) {
       html.style.visibility = 'visible';
     }
-  }
-
-  identify(user: IUser) {
-    this.netWorkService!.user = user;
   }
 
   private async capturePageViews(exptMetricSettings: IExptMetricSetting[]) {
@@ -69,7 +61,7 @@ class AutoCapture {
         eventName: pageViewSetting.eventName
       }];
 
-      await this.netWorkService!.track(data);
+      await networkService.track(data);
     }
 
     window.addEventListener("locationchange", async function () {
@@ -82,7 +74,7 @@ class AutoCapture {
           eventName: pageViewSetting.eventName
         }];
 
-        await self.netWorkService!.track(data);
+        await networkService.track(data);
       }
     });
   }
@@ -113,7 +105,7 @@ class AutoCapture {
         eventName: target.dataffceventname
       }];
     
-      this.netWorkService?.track(data);
+      networkService.track(data);
     }
 
     const clickSetting = exptMetricSettings

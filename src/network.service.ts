@@ -1,20 +1,24 @@
 import { websocketReconnectTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
-import { ICustomEvent, IFeatureFlagVariation, IStreamResponse, IUser } from "./types";
+import { ICustomEvent, IExptMetricSetting, IFeatureFlagVariation, IStreamResponse, IUser, IZeroCode } from "./types";
 import { ffcguid, generateConnectionToken, throttleAsync } from "./utils";
 
 const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
 let retryCounter = 0;
 
-class SocketService {
+class NetworkService {
   private user: IUser | undefined;
-  private url: string | undefined;
+  private api: string | undefined;
+  private secret: string | undefined;
+  private appType: string | undefined;
 
   constructor(){}
 
-  init(api: string, secret: string) {
-    this.url = api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(secret)}`;
+  init(api: string, secret: string, appType: string) {
+    this.api = api;
+    this.secret = secret;
+    this.appType = appType;
   }
 
   identify(user: IUser) {
@@ -35,7 +39,8 @@ class SocketService {
 
     const startTime = Date.now();
     // Create WebSocket connection.
-    that.socket = new WebSocket(that.url!);
+    const url = this.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this.secret!)}`;
+    that.socket = new WebSocket(url);
 
     function sendPingMessage() {
       const payload = {
@@ -112,9 +117,87 @@ class SocketService {
       }
     });
   }
+
+  sendFeatureFlagInsights = throttleAsync(ffcguid(), async (variations: IFeatureFlagVariation[]) => {
+    if (!this.secret || !this.user || !variations || variations.length === 0) {
+      return;
+    }
+  
+    try {
+      const { userName, email, country, id, customizedProperties } = this.user;
+      const payload = [{
+        userName,
+        email,
+        country,
+        userKeyId: id,
+        userCustomizedProperties: customizedProperties,
+        userVariations: variations.map(v => ({
+          featureFlagKeyName: v.id,
+          sendToExperiment: v.sendToExperiment,
+          timestamp: v.timestamp,
+          variation: {
+            localId: v.variation.id,
+            variationValue: v.variation.value
+          }
+        }))
+      }];
+  
+      await post(`${this.api}/api/public/analytics/track/feature-flags`, payload, { envSecret: this.secret });
+    } catch (err) {
+      logger.logDebug(err);
+    }
+  })
+
+  async track(data: ICustomEvent[]): Promise<void> {
+    try {
+      const payload = data.map(d => Object.assign({}, {
+        secret: this.secret,
+        route: location.pathname,
+        numericValue: 1,
+        appType: this.appType,
+        user: {
+          fFUserName: this.user?.userName,
+          fFUserEmail: this.user?.email,
+          fFUserCountry: this.user?.country,
+          fFUserKeyId: this.user?.id,
+          fFUserCustomizedProperties: this.user?.customizedProperties
+        }
+      }, d));
+  
+      await post(`${this.api}/ExperimentsDataReceiver/PushData`, payload, { envSecret: this.secret! });
+    } catch (err) {
+      logger.logDebug(err);
+    }
+  }
+
+  async getActiveExperimentMetricSettings(): Promise<IExptMetricSetting[] | []> {
+    const exptMetricSettingLocalStorageKey = 'ffc_expt_metric';
+    try {
+        const result = await get(`${this.api}/api/experiments/${this.secret}`, { envSecret: this.secret! });
+
+        localStorage.setItem(exptMetricSettingLocalStorageKey, JSON.stringify(result));
+        return result;
+    } catch (error) {
+        console.log(error);
+        return !!localStorage.getItem(exptMetricSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(exptMetricSettingLocalStorageKey) as string) : [];
+    }
 }
 
-export const socketService = new SocketService();
+async getZeroCodeSettings(): Promise<IZeroCode[] | []> {
+    const zeroCodeSettingLocalStorageKey = 'ffc_zcs';
+    try {
+        const result = await get(`${this.api}/api/zero-code/${this.secret}`, { envSecret: this.secret! });
+
+        localStorage.setItem(zeroCodeSettingLocalStorageKey, JSON.stringify(result));
+        return result;
+    } catch (error) {
+        console.log(error);
+        return !!localStorage.getItem(zeroCodeSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string) : [];
+    }
+}
+}
+
+export const networkService = new NetworkService();
 
 export async function post(url: string = '', data: any = {}, headers: { [key: string]: string } = {}) {
   try {
@@ -147,57 +230,5 @@ export async function get(url: string = '', headers: { [key: string]: string } =
   } catch (err) {
     logger.logDebug(err);
     return null;
-  }
-}
-
-export const sendFeatureFlagInsights = throttleAsync(ffcguid(), async (api: string, secret: string, user: IUser, variations: IFeatureFlagVariation[]) => {
-  if (!secret || !user || !variations || variations.length === 0) {
-    return;
-  }
-
-  try {
-    const { userName, email, country, id, customizedProperties } = user;
-    const payload = [{
-      userName,
-      email,
-      country,
-      userKeyId: id,
-      userCustomizedProperties: customizedProperties,
-      userVariations: variations.map(v => ({
-        featureFlagKeyName: v.id,
-        sendToExperiment: v.sendToExperiment,
-        timestamp: v.timestamp,
-        variation: {
-          localId: v.variation.id,
-          variationValue: v.variation.value
-        }
-      }))
-    }];
-
-    await post(`${api}/api/public/analytics/track/feature-flags`, payload, { envSecret: secret });
-  } catch (err) {
-    logger.logDebug(err);
-  }
-})
-
-export async function track(api: string, secret: string, appType: string, user: IUser, data: ICustomEvent[]): Promise<void> {
-  try {
-    const payload = data.map(d => Object.assign({}, {
-      secret: secret,
-      route: location.pathname,
-      numericValue: 1,
-      appType: appType,
-      user: {
-        fFUserName: user.userName,
-        fFUserEmail: user.email,
-        fFUserCountry: user.country,
-        fFUserKeyId: user.id,
-        fFUserCustomizedProperties: user.customizedProperties
-      }
-    }, d));
-
-    await post(`${api}/ExperimentsDataReceiver/PushData`, payload, { envSecret: secret });
-  } catch (err) {
-    logger.logDebug(err);
   }
 }

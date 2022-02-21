@@ -2,9 +2,9 @@ import devMode from "./devmode";
 import { eventHub } from "./events";
 import { logger } from "./logger";
 import store from "./store";
-import { sendFeatureFlagInsights, socketService, track } from "./network.service";
+import { networkService } from "./network.service";
 import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
-import { ffcguid, generateConnectionToken, validateOption, validateUser } from "./utils";
+import { ffcguid, validateOption, validateUser } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedTopic, featureFlagInsightFlushTopic, websocketReconnectTopic } from "./constants";
 import autoCapture from "./autocapture/autocapture";
@@ -71,7 +71,7 @@ class Ffc {
     // track feature flag usage data
     eventHub.subscribe(featureFlagInsightFlushTopic, () => {
       if (this._option.enableDataSync){
-        sendFeatureFlagInsights(this._option.api!, this._option.secret, this._option.user!, this._featureFlagInsightQueue.removeAll());
+        networkService.sendFeatureFlagInsights(this._featureFlagInsightQueue.removeAll());
       }
     });
 
@@ -97,9 +97,10 @@ class Ffc {
 
     this._option = Object.assign({}, this._option, option, { api: (option.api || this._option.api)?.replace(/\/$/, '') });
 
-    socketService.init(this._option.api!, this._option.secret);
-    autoCapture.init(this._option.api!, this._option.secret, this._option.appType!, this._option.user!);
+    networkService.init(this._option.api!, this._option.secret, this._option.appType!);
+    
     this.identify(option.user || createorGetAnonymousUser());
+    autoCapture.init();
   }
 
   identify(user: IUser): void {
@@ -114,8 +115,7 @@ class Ffc {
     store.userId = this._option.user.id;
     //setTimeout(() => this.bootstrap(), 20000);
 
-    socketService.identify(this._option.user);
-    autoCapture.identify(this._option.user);
+    networkService.identify(this._option.user);
     this.bootstrap();
   }
 
@@ -169,10 +169,9 @@ class Ffc {
 
   private async dataSync(): Promise<any> {
     return new Promise<void>((resolve, reject) => {
-      //const serverUrl: any = this._option.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this._option.secret)}`;
       const timestamp = Math.max(...Object.values(store.getFeatureFlags()).map(ff => ff.timestamp), 0);
 
-      socketService.createConnection(timestamp, (message: IStreamResponse) => {
+      networkService.createConnection(timestamp, (message: IStreamResponse) => {
         const { featureFlags } = message;
 
         if (message && message.userKeyId === this._option.user?.id) {
@@ -219,7 +218,7 @@ class Ffc {
 
   async sendCustomEvent(data: ICustomEvent[]) {
     data = data || [];
-    return await track(this._option.api!, this._option.secret, this._option.appType!, this._option.user!, data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
+    return await networkService.track(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
   }
 }
 

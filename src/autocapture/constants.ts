@@ -1,1 +1,0 @@
-export const ffcSpecialValue = '___071218__';
