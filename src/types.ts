@@ -65,8 +65,8 @@ export enum FeatureFlagUpdateOperation {
 }
 
 export interface IStreamResponse {
-  version: number,
   eventType: StreamResponseEventType,
+  userKeyId: string,
   featureFlags: IFeatureFlag[]
 }
 

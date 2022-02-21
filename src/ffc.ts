@@ -2,7 +2,7 @@ import devMode from "./devmode";
 import { eventHub } from "./events";
 import { logger } from "./logger";
 import store from "./store";
-import { connectWebSocket, sendFeatureFlagInsights, track } from "./network.service";
+import { sendFeatureFlagInsights, socketService, track } from "./network.service";
 import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, generateConnectionToken, validateOption, validateUser } from "./utils";
 import { Queue } from "./queue";
@@ -97,6 +97,7 @@ class Ffc {
 
     this._option = Object.assign({}, this._option, option, { api: (option.api || this._option.api)?.replace(/\/$/, '') });
 
+    socketService.init(this._option.api!, this._option.secret);
     autoCapture.init(this._option.api!, this._option.secret, this._option.appType!, this._option.user!);
     this.identify(option.user || createorGetAnonymousUser());
   }
@@ -113,6 +114,7 @@ class Ffc {
     store.userId = this._option.user.id;
     //setTimeout(() => this.bootstrap(), 20000);
 
+    socketService.identify(this._option.user);
     autoCapture.identify(this._option.user);
     this.bootstrap();
   }
@@ -167,13 +169,13 @@ class Ffc {
 
   private async dataSync(): Promise<any> {
     return new Promise<void>((resolve, reject) => {
-      const serverUrl: any = this._option.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this._option.secret)}`;
+      //const serverUrl: any = this._option.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this._option.secret)}`;
       const timestamp = Math.max(...Object.values(store.getFeatureFlags()).map(ff => ff.timestamp), 0);
 
-      connectWebSocket(serverUrl, this._option.user!, timestamp, (message: IStreamResponse) => {
+      socketService.createConnection(timestamp, (message: IStreamResponse) => {
         const { featureFlags } = message;
 
-        if (message) {
+        if (message && message.userKeyId === this._option.user?.id) {
           switch (message.eventType) {
             case StreamResponseEventType.full: // full data
             case StreamResponseEventType.patch: // partial data
@@ -199,9 +201,9 @@ class Ffc {
               logger.logDebug('invalid stream event type: ' + message.eventType);
               break;
           }
-
-          resolve();
         }
+
+        resolve();
       });
     });
   }

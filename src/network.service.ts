@@ -2,90 +2,119 @@ import { websocketReconnectTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
 import { ICustomEvent, IFeatureFlagVariation, IStreamResponse, IUser } from "./types";
-import { ffcguid, throttleAsync } from "./utils";
+import { ffcguid, generateConnectionToken, throttleAsync } from "./utils";
 
 const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
 let retryCounter = 0;
 
-export function connectWebSocket(url: string, user: IUser, timestamp: number, onMessage: (response: IStreamResponse) => any) {
-  // Create WebSocket connection.
-  const startTime = Date.now();
-  const socket = new WebSocket(url);
+class SocketService {
+  private user: IUser | undefined;
+  private url: string | undefined;
 
-  function sendPingMessage() {
-    const payload = {
-      messageType: 'ping',
-      data: null
-    };
+  constructor(){}
 
-    setTimeout(() => {
-      try {
-        if (socket.readyState === socket.OPEN) {
-          socket.send(JSON.stringify(payload));
-          sendPingMessage();
-        } else {
-          logger.logDebug(`socket closed at ${new Date()}`);
-        }
-      } catch (err) {
-        logger.logDebug(err);
-      }
-    }, 18000);
+  init(api: string, secret: string) {
+    this.url = api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(secret)}`;
   }
 
-  // Connection opened
-  socket.addEventListener('open', function (event) {
-    retryCounter = 0;
+  identify(user: IUser) {
+    if (this.user?.id !== user.id) {
+      this.socket?.close();
+    }
 
-    logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
-    const { userName, email, country, id, customizedProperties } = user;
-    const payload = {
-      messageType: 'data-sync',
-      data: {
-        user: {
-          userName,
-          email,
-          country,
-          userKeyId: id,
-          customizedProperties,
-        },
-        timestamp
-      }
-    };
+    this.user = { ...user };
+  }
 
-    socket.send(JSON.stringify(payload));
+  private socket: WebSocket | undefined;
 
-    sendPingMessage();
-  });
-
-  // Connection closed
-  socket.addEventListener('close', function (event) {
-    logger.logDebug('close');
-    if (event.code === 4003) { // do not reconnect when 4003
+  createConnection(timestamp: number, onMessage: (response: IStreamResponse) => any) {
+    const that = this;
+    if (that.socket) {
       return;
     }
-    const waitTime = socketConnectionIntervals[Math.min(retryCounter++, socketConnectionIntervals.length)];
-    setTimeout(() => eventHub.emit(websocketReconnectTopic, {}), waitTime);
-    logger.logDebug(waitTime);
-  });
 
-  // Connection error
-  socket.addEventListener('error', function (event) {
-    // reconnect
-    logger.logDebug('error');
-    socket.close();
-  });
+    const startTime = Date.now();
+    // Create WebSocket connection.
+    that.socket = new WebSocket(that.url!);
 
-  // Listen for messages
-  socket.addEventListener('message', function (event) {
-    const message = JSON.parse(event.data);
-    if (message.messageType === 'data-sync') {
-      onMessage(message.data);
-      if (message.data.featureFlags.length > 0) {
-        logger.logDebug('socket push update time(ms): ', Date.now() - message.data.featureFlags[0].timestamp);
-      }
+    function sendPingMessage() {
+      const payload = {
+        messageType: 'ping',
+        data: null
+      };
+  
+      setTimeout(() => {
+        try {
+          if (that.socket!.readyState === that.socket!.OPEN) {
+            that.socket!.send(JSON.stringify(payload));
+            sendPingMessage();
+          } else {
+            logger.logDebug(`socket closed at ${new Date()}`);
+          }
+        } catch (err) {
+          logger.logDebug(err);
+        }
+      }, 18000);
     }
-  });
+  
+    // Connection opened
+    that.socket.addEventListener('open', function (event) {
+      retryCounter = 0;
+  
+      logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
+      const { userName, email, country, id, customizedProperties } =that.user!;
+      const payload = {
+        messageType: 'data-sync',
+        data: {
+          user: {
+            userName,
+            email,
+            country,
+            userKeyId: id,
+            customizedProperties,
+          },
+          timestamp
+        }
+      };
+  
+      that.socket?.send(JSON.stringify(payload));
+  
+      sendPingMessage();
+    });
+  
+    // Connection closed
+    that.socket.addEventListener('close', function (event) {
+      that.socket = undefined;
+      logger.logDebug('close');
+      if (event.code === 4003) { // do not reconnect when 4003
+        return;
+      }
+      const waitTime = socketConnectionIntervals[Math.min(retryCounter++, socketConnectionIntervals.length)];
+      setTimeout(() => eventHub.emit(websocketReconnectTopic, {}), waitTime);
+      logger.logDebug(waitTime);
+    });
+  
+    // Connection error
+    that.socket!.addEventListener('error', function (event) {
+      // reconnect
+      logger.logDebug('error');
+      that.socket!.close();
+    });
+  
+    // Listen for messages
+    that.socket.addEventListener('message', function (event) {
+      const message = JSON.parse(event.data);
+      if (message.messageType === 'data-sync') {
+        onMessage(message.data);
+        if (message.data.featureFlags.length > 0) {
+          logger.logDebug('socket push update time(ms): ', Date.now() - message.data.featureFlags[0].timestamp);
+        }
+      }
+    });
+  }
 }
+
+export const socketService = new SocketService();
 
 export async function post(url: string = '', data: any = {}, headers: { [key: string]: string } = {}) {
   try {
