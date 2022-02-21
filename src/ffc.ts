@@ -4,7 +4,7 @@ import { logger } from "./logger";
 import store from "./store";
 import { connectWebSocket, sendFeatureFlagInsights, track } from "./network.service";
 import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
-import { ffcguid, generateConnectionToken, validateOption } from "./utils";
+import { ffcguid, generateConnectionToken, validateOption, validateUser } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedTopic, featureFlagInsightFlushTopic, websocketReconnectTopic } from "./constants";
 import autoCapture from "./autocapture/autocapture";
@@ -102,7 +102,13 @@ class Ffc {
   }
 
   identify(user: IUser): void {
-    this._option.user = Object.assign({}, this._option.user, user);
+    const validateUserResult = validateUser(user);
+    if (validateUserResult !== null) {
+      console.log(validateUserResult);
+      return;
+    }
+
+    this._option.user = Object.assign({}, user);
 
     store.userId = this._option.user.id;
     //setTimeout(() => this.bootstrap(), 20000);

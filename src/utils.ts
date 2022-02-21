@@ -18,6 +18,10 @@ export function ffcguid() {
 }
 
 export function validateUser(user: IUser): string | null {
+  if (!user) {
+    return 'user must be defined';
+  }
+
   const { id, userName } = user;
 
   if (id === undefined || id === null || id.trim() === '') {
