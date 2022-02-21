@@ -141,8 +141,8 @@ class Ffc {
     if (featureFlags && featureFlags.length > 0) {
       const data = {
         featureFlags: featureFlags.reduce((res, curr) => {
-          const { id, variation, timestamp, variationOptions, isArchived, sendToExperiment } = curr;
-          res[id] = { id, variation, timestamp, variationOptions, isArchived, sendToExperiment };
+          const { id, variation, timestamp, variationOptions, sendToExperiment } = curr;
+          res[id] = { id, variation, timestamp, variationOptions, sendToExperiment };
 
           return res;
         }, {} as { [key: string]: IFeatureFlag })
@@ -181,8 +181,8 @@ class Ffc {
             case StreamResponseEventType.patch: // partial data
               const data = {
                 featureFlags: featureFlags.reduce((res, curr) => {
-                  const { id, variation, timestamp, variationOptions, isArchived, sendToExperiment } = curr;
-                  res[id] = { id, variation, timestamp, variationOptions, isArchived, sendToExperiment };
+                  const { id, variation, timestamp, variationOptions, sendToExperiment } = curr;
+                  res[id] = { id, variation, timestamp, variationOptions, sendToExperiment };
 
                   return res;
                 }, {} as { [key: string]: IFeatureFlag })

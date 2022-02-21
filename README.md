@@ -153,7 +153,6 @@ If you already have the feature flags available, two ways to pass them to the SD
       variation: string,
       sendToExperiment: boolean,
       timestamp: number,
-      isArchived: boolean,
       variationOptions: [{
         id: number,
         value: string
@@ -172,7 +171,6 @@ const featureflags = [{ // the array should contain all your feature flags
   variation: string,
   sendToExperiment: boolean,
   timestamp: number,
-  isArchived: boolean,
   variationOptions: [{
     id: number,
     value: string

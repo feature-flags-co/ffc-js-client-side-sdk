@@ -45,7 +45,6 @@ export interface IFeatureFlagBase {
 export interface IFeatureFlag extends IFeatureFlagBase{
   sendToExperiment: boolean,
   timestamp: number,
-  isArchived: boolean,
   variationOptions: IVariationOption[]
 }
 
