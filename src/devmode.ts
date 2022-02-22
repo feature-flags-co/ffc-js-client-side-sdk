@@ -135,6 +135,10 @@ function ffListHtml(featureFlags: { [key: string]: IFeatureFlag }): string {
 }
 
 function enableDevMode() {
+  if(document.getElementById('ffc-devmode-container')) {
+    return;
+  }
+
   // display dev mode icon
   const devModeContainer = document.createElement("div");
   devModeContainer.id = 'ffc-devmode-container';
@@ -179,6 +183,9 @@ function enableDevMode() {
 
   // add onclick listener on icon
   devModeBtn.addEventListener('click', () => {
+    if(document.getElementById('ffc-ff-editor-container')) {
+      return;
+    }
     createFfEditor(store.getFeatureFlags());
   });
 
