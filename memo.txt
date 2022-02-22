@@ -20,3 +20,13 @@ lib-esm/		// ES5(esmodule) + source + .d.ts
 
 demo
  http://localhost:8000/user/login?envkey=OTNlLTYyM2UtNCUyMDIxMTAxOTA4NDYxMF9fMl9fM19fMjM0X19kZWZhdWx0XzRhMjE1
+
+ for error: 'this' implicitly has type 'any' because it does not have a type annotation
+ ref: https://www.valentinog.com/blog/this/
+const button = document.querySelector("button");
+button?.addEventListener("click", handleClick);
+
+function handleClick(this: HTMLElement) {
+    console.log("Clicked!");
+    this.removeEventListener("click", handleClick);
+}

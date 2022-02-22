@@ -144,9 +144,11 @@ function enableDevMode() {
   devModeContainer.id = 'ffc-devmode-container';
   addCss(devModeContainer, {
     "position": "absolute",
-    "z-index": "9",
+    "z-index": "9999",
     "bottom": "5px",
-    "right": "5px"
+    "right": "5px",
+    "font-family": `Sohne, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+		'Droid Sans', 'Helvetica Neue', sans-serif`
   });
 
   const closeBtn = document.createElement("div");
@@ -192,7 +194,7 @@ function enableDevMode() {
   devModeContainer.appendChild(devModeBtn);
   document.body.appendChild(devModeContainer);
 
-  //makeElementDraggable(devModeContainer);
+  makeElementDraggable(devModeContainer);
 }
 
 function disableDevMode() {
