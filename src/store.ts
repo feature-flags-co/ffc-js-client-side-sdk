@@ -92,10 +92,7 @@ class Store {
     }
   }
 
-  updateBulkFromRemote(data: IDataStore) {
-    this.updateBulk(data);
-
-    const storageKey = !this._isDevMode ? `${DataStoreStorageKey}_dev_${this._userId}` : `${DataStoreStorageKey}_${this._userId}`;
+  _updateBulk(data: IDataStore, storageKey: string, onlyInsertNewElement: boolean) {
     let dataStoreStr = localStorage.getItem(storageKey);
     let store: IDataStore | null = null;
 
@@ -108,19 +105,33 @@ class Store {
     }
 
     if (!!store) {
-        const { featureFlags } = data;
+      const { featureFlags } = data;
 
-        Object.keys(featureFlags).forEach(id => {
-          const remoteFf = featureFlags[id];
-          const localFf = store!.featureFlags[id];
+      Object.keys(featureFlags).forEach(id => {
+        const remoteFf = featureFlags[id];
+        const localFf = store!.featureFlags[id];
 
-          const predicate = !localFf || (!this.isDevMode ? false : remoteFf.timestamp > localFf.timestamp);
-          if (predicate) {
-            store!.featureFlags[remoteFf.id] = Object.assign({}, remoteFf);
-          }
-        });
+        const predicate = !localFf || (!onlyInsertNewElement && remoteFf.timestamp > localFf.timestamp);
+        if (predicate) {
+          store!.featureFlags[remoteFf.id] = Object.assign({}, remoteFf);
+        }
+      });
 
-        this._dumpToStorage(store, storageKey);
+      this._dumpToStorage(store, storageKey);
+    }
+  }
+
+  updateBulkFromRemote(data: IDataStore) {
+    const storageKey = `${DataStoreStorageKey}_dev_${this._userId}`;
+    this._updateBulk(data, storageKey, true);
+
+    if (!this.isDevMode) {
+      this.updateBulk(data);
+    } else {
+      const storageKey = `${DataStoreStorageKey}_${this._userId}`;
+      this._updateBulk(data, storageKey, false);
+
+      this._loadFromStorage();
     }
   }
 
