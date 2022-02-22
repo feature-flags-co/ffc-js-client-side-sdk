@@ -26,7 +26,8 @@ class Store {
         return res;
       }, { featureFlags: {} });
 
-      this.updateBulk(updatedFfs);
+      this.updateBulk(updatedFfs, `${DataStoreStorageKey}_dev_${this._userId}`, false);
+      this._loadFromStorage();
     });
 
     eventHub.subscribe(`devmode_ff_${FeatureFlagUpdateOperation.createDevData}`, () => {
@@ -82,23 +83,17 @@ class Store {
     return this._store.featureFlags;
   }
 
-  update(ff: IFeatureFlag) {
-    if (ff) {
-      this.updateBulk({
-        featureFlags: {
-          [ff.id]: Object.assign({}, ff)
-        }
-      })
-    }
-  }
-
-  _updateBulk(data: IDataStore, storageKey: string, onlyInsertNewElement: boolean) {
+  updateBulk(data: IDataStore, storageKey: string, onlyInsertNewElement: boolean) {
     let dataStoreStr = localStorage.getItem(storageKey);
     let store: IDataStore | null = null;
 
     try {
       if (dataStoreStr && dataStoreStr.trim().length > 0) {
         store = JSON.parse(dataStoreStr);
+      } else {
+        store = {
+          featureFlags: {} as { [key: string]: IFeatureFlag }
+        };
       }
     } catch (err) {
       logger.logDebug(`error while loading local data store: ${storageKey}` + err);
@@ -122,43 +117,13 @@ class Store {
   }
 
   updateBulkFromRemote(data: IDataStore) {
-    const storageKey = `${DataStoreStorageKey}_dev_${this._userId}`;
-    this._updateBulk(data, storageKey, true);
+    const storageKey = `${DataStoreStorageKey}_${this._userId}`;
+    const devStorageKey = `${DataStoreStorageKey}_dev_${this._userId}`;
 
-    if (!this.isDevMode) {
-      this.updateBulk(data);
-    } else {
-      const storageKey = `${DataStoreStorageKey}_${this._userId}`;
-      this._updateBulk(data, storageKey, false);
+    this.updateBulk(data, storageKey, false);
+    this.updateBulk(data, devStorageKey, true);
 
-      this._loadFromStorage();
-    }
-  }
-
-  updateBulk(data: IDataStore) {
-    const { featureFlags } = data;
-    const updatedFeatureFlags: any[] = [];
-
-    Object.keys(featureFlags).forEach(id => {
-      const remoteFf = featureFlags[id];
-      const localFf = this._store.featureFlags[id];
-
-      if (!localFf || remoteFf.timestamp > localFf.timestamp) {
-        this._store.featureFlags[remoteFf.id] = Object.assign({}, remoteFf);
-        updatedFeatureFlags.push({
-          id: remoteFf.id,
-          operation: FeatureFlagUpdateOperation.update,
-          data: {
-            id: remoteFf.id,
-            oldValue: localFf?.variation,
-            newValue: remoteFf.variation
-          }
-        });
-      }
-    });
-
-    this._emitUpdateEvents(updatedFeatureFlags);
-    this._dumpToStorage();
+    this._loadFromStorage();
   }
 
   private _emitUpdateEvents(updatedFeatureFlags: any[]): void {
