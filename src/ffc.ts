@@ -7,7 +7,7 @@ import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IO
 import { ffcguid, validateOption, validateUser } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedTopic, featureFlagInsightFlushTopic, websocketReconnectTopic } from "./constants";
-import autoCapture from "./autocapture/autocapture";
+import autoCapture from "./autocapture";
 
 
 function createorGetAnonymousUser(): IUser {

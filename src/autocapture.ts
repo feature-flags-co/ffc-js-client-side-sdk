@@ -1,10 +1,10 @@
-import Ffc from "../ffc";
-import { eventHub } from "../events";
-import store from "../store";
-import { featureFlagEvaluatedTopic } from "../constants";
-import { networkService } from "../network.service";
-import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, IZeroCode, UrlMatchType } from "../types";
-import { extractCSS, groupBy, isUrlMatch } from "../utils";
+import Ffc from "./ffc";
+import { eventHub } from "./events";
+import store from "./store";
+import { featureFlagEvaluatedTopic } from "./constants";
+import { networkService } from "./network.service";
+import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, IZeroCode, UrlMatchType } from "./types";
+import { extractCSS, groupBy, isUrlMatch } from "./utils";
 
 declare global {
   interface Window {
