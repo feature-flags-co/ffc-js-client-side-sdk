@@ -93,38 +93,34 @@ class Store {
   }
 
   updateBulkFromRemote(data: IDataStore) {
-    if (!this._isDevMode) {
-      this.updateBulk(data);
-      return;
-    }
+    this.updateBulk(data);
 
-    const storageKey = `${DataStoreStorageKey}_${this._userId}`;
+    const storageKey = !this._isDevMode ? `${DataStoreStorageKey}_dev_${this._userId}` : `${DataStoreStorageKey}_${this._userId}`;
     let dataStoreStr = localStorage.getItem(storageKey);
-    let store: IDataStore;
+    let store: IDataStore | null = null;
 
     try {
       if (dataStoreStr && dataStoreStr.trim().length > 0) {
         store = JSON.parse(dataStoreStr);
-      } else {
-        store = {
-          featureFlags: {} as { [key: string]: IFeatureFlag }
-        };
       }
-
-      const { featureFlags } = data;
-
-      Object.keys(featureFlags).forEach(id => {
-        const remoteFf = featureFlags[id];
-        const localFf = store.featureFlags[id];
-
-        if (!localFf || remoteFf.timestamp > localFf.timestamp) {
-          store.featureFlags[remoteFf.id] = Object.assign({}, remoteFf);
-        }
-      });
-
-      this._dumpToStorage(store);
     } catch (err) {
-      logger.logDebug('error while loading local data store: ' + err);
+      logger.logDebug(`error while loading local data store: ${storageKey}` + err);
+    }
+
+    if (!!store) {
+        const { featureFlags } = data;
+
+        Object.keys(featureFlags).forEach(id => {
+          const remoteFf = featureFlags[id];
+          const localFf = store!.featureFlags[id];
+
+          const predicate = !localFf || (!this.isDevMode ? false : remoteFf.timestamp > localFf.timestamp);
+          if (predicate) {
+            store!.featureFlags[remoteFf.id] = Object.assign({}, remoteFf);
+          }
+        });
+
+        this._dumpToStorage(store, storageKey);
     }
   }
 
@@ -162,9 +158,9 @@ class Store {
     }
   }
 
-  private _dumpToStorage(store?: IDataStore): void {
+  private _dumpToStorage(store?: IDataStore, localStorageKey?: string): void {
     if (store) {
-      const storageKey = `${DataStoreStorageKey}_${this._userId}`;
+      const storageKey = localStorageKey || `${DataStoreStorageKey}_${this._userId}`;
       localStorage.setItem(storageKey, JSON.stringify(store));
       return;
     }

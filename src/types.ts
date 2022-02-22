@@ -70,13 +70,8 @@ export interface IStreamResponse {
 }
 
 export interface ICustomEvent {
-  secret?: string,
-  route?: string,
-  appType?: string,
   eventName: string,
-  numericValue?: number,
-  customizedProperties?: ICustomizedProperty[],
-  user?: IUser
+  numericValue?: number
 }
 
 /******************* auto capture begin********************************** */

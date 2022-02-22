@@ -241,4 +241,18 @@ Ffc.on('ff_update:feature_flag_key', (change) => {
 
 ```
 
+## Experiments (A/B/n Testing)
+We support automatic experiments for pageviews and clicks, you just need to set your experiment on our SaaS platform, then you should be able to see the result in near real time after the experiment is started.
+
+In case you need more control over the experiment data sent to our server, we offer a method to send custom event.
+```javascript
+Ffc.sendCustomEvent([{
+    eventName: 'your event name',
+    numericValue: 1
+}])
+```
+**numericValue** is not mandatory, the default value is **1**.
+
+Make sure sendCustomEvent is called after the related feature flag is called by simply calling **Ffc.variation('featureFlagKeyName', 'default value')**, otherwise, the custom event won't be included into the experiment result.
+
 
