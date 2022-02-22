@@ -26,7 +26,7 @@ class Store {
         return res;
       }, { featureFlags: {} });
 
-      this.updateBulk(updatedFfs, `${DataStoreStorageKey}_dev_${this._userId}`, false);
+      this.updateStorageBulk(updatedFfs, `${DataStoreStorageKey}_dev_${this._userId}`, false);
       this._loadFromStorage();
     });
 
@@ -83,7 +83,7 @@ class Store {
     return this._store.featureFlags;
   }
 
-  updateBulk(data: IDataStore, storageKey: string, onlyInsertNewElement: boolean) {
+  updateStorageBulk(data: IDataStore, storageKey: string, onlyInsertNewElement: boolean) {
     let dataStoreStr = localStorage.getItem(storageKey);
     let store: IDataStore | null = null;
 
@@ -120,8 +120,8 @@ class Store {
     const storageKey = `${DataStoreStorageKey}_${this._userId}`;
     const devStorageKey = `${DataStoreStorageKey}_dev_${this._userId}`;
 
-    this.updateBulk(data, storageKey, false);
-    this.updateBulk(data, devStorageKey, true);
+    this.updateStorageBulk(data, storageKey, false);
+    this.updateStorageBulk(data, devStorageKey, true);
 
     this._loadFromStorage();
   }
