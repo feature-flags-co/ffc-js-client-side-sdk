@@ -224,6 +224,7 @@ class Ffc {
 
 const ffc = new Ffc();
 window['activateFfcDevMode'] = (password?: string) => ffc.activateDevMode(password);
+window['quitFfcDevMode'] = () => ffc.quitDevMode();
 
 export default ffc;
 

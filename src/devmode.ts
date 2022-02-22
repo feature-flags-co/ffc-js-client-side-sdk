@@ -151,26 +151,26 @@ function enableDevMode() {
 		'Droid Sans', 'Helvetica Neue', sans-serif`
   });
 
-  const closeBtn = document.createElement("div");
-  closeBtn.style.height = '25px';
-  closeBtn.innerHTML = `
-    <div id="ffc-devmode-close" style="font-size: 25px;padding: 6px 20px;cursor: pointer;font-weight:600;text-align:right;width:50px"></div>
-    <style>
-    #ffc-devmode-close:after{
-      display: inline-block;
-      content: "\\00d7"; /* This will render the 'X' */
-    }
-  </style>
-    `;
+  // const closeBtn = document.createElement("div");
+  // closeBtn.style.height = '25px';
+  // closeBtn.innerHTML = `
+  //   <div id="ffc-devmode-close" style="font-size: 25px;padding: 6px 20px;cursor: pointer;font-weight:600;text-align:right;width:50px"></div>
+  //   <style>
+  //   #ffc-devmode-close:after{
+  //     display: inline-block;
+  //     content: "\\00d7"; /* This will render the 'X' */
+  //   }
+  // </style>
+  //   `;
 
-  // add onclick listener on close button, turn off dev mode if clicked
-  closeBtn.addEventListener('click', () => {
-    localStorage.setItem(devModeStorageKey, `${false}`)
-    store.isDevMode = false;
-    disableDevMode();
-  });
+  // // add onclick listener on close button, turn off dev mode if clicked
+  // closeBtn.addEventListener('click', () => {
+  //   localStorage.setItem(devModeStorageKey, `${false}`)
+  //   store.isDevMode = false;
+  //   disableDevMode();
+  // });
 
-  devModeContainer.appendChild(closeBtn);
+  // devModeContainer.appendChild(closeBtn);
 
   const devModeBtn = document.createElement("img");
   devModeBtn.src = DevModeIconBtnData;
