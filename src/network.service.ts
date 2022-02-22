@@ -50,7 +50,7 @@ class NetworkService {
   
       setTimeout(() => {
         try {
-          if (that.socket!.readyState === that.socket!.OPEN) {
+          if (that.socket?.readyState === that.socket!.OPEN) {
             that.socket!.send(JSON.stringify(payload));
             sendPingMessage();
           } else {

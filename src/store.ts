@@ -90,7 +90,7 @@ class Store {
     try {
       if (dataStoreStr && dataStoreStr.trim().length > 0) {
         store = JSON.parse(dataStoreStr);
-      } else {
+      } else if (this.isDevMode || storageKey.indexOf('_dev_') === -1) {
         store = {
           featureFlags: {} as { [key: string]: IFeatureFlag }
         };
