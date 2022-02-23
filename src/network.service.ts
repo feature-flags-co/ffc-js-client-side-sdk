@@ -130,7 +130,7 @@ class NetworkService {
         email,
         country,
         userKeyId: id,
-        userCustomizedProperties: customizedProperties,
+        customizedProperties: customizedProperties,
         userVariations: variations.map(v => ({
           featureFlagKeyName: v.id,
           sendToExperiment: v.sendToExperiment,
