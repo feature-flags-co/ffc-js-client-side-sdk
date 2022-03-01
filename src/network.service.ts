@@ -164,9 +164,9 @@ class NetworkService {
   async getActiveExperimentMetricSettings(): Promise<IExptMetricSetting[] | []> {
     const exptMetricSettingLocalStorageKey = 'ffc_expt_metric';
     try {
-        const result = await get(`${this.api}/api/experiments/${this.secret}`, { envSecret: this.secret! });
+        const result = await get(`${this.api}/api/public/sdk/experiments`, { envSecret: this.secret! });
 
-        localStorage.setItem(exptMetricSettingLocalStorageKey, JSON.stringify(result));
+        localStorage.setItem(exptMetricSettingLocalStorageKey, JSON.stringify(result.data));
         return result;
     } catch (error) {
         console.log(error);
@@ -177,9 +177,9 @@ class NetworkService {
 async getZeroCodeSettings(): Promise<IZeroCode[] | []> {
     const zeroCodeSettingLocalStorageKey = 'ffc_zcs';
     try {
-        const result = await get(`${this.api}/api/zero-code/${this.secret}`, { envSecret: this.secret! });
+        const result = await get(`${this.api}/api/public/sdk/zero-code`, { envSecret: this.secret! });
 
-        localStorage.setItem(zeroCodeSettingLocalStorageKey, JSON.stringify(result));
+        localStorage.setItem(zeroCodeSettingLocalStorageKey, JSON.stringify(result.data));
         return result;
     } catch (error) {
         console.log(error);
