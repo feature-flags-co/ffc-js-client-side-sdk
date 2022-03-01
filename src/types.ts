@@ -27,14 +27,27 @@ export interface IVariationOption {
   value: string
 }
 
+
+
 export interface IFeatureFlagVariation {
-  id: string,
-  sendToExperiment: boolean
-  timestamp: number,
-  variation: {
+  id?: string,
+  sendToExperiment?: boolean
+  timestamp?: number,
+  variation?: {
     id: number,
     value: string,
   }
+}
+
+export enum InsightType {
+  featureFlagUsage = 1,
+  customEvent = 2,
+  pageView = 3,
+  click = 4
+}
+
+export interface IInsight extends IFeatureFlagVariation, ICustomEvent {
+  insightType: InsightType
 }
 
 export interface IFeatureFlagBase {
@@ -70,6 +83,7 @@ export interface IStreamResponse {
 }
 
 export interface ICustomEvent {
+  type?: string,
   eventName: string,
   numericValue?: number
 }

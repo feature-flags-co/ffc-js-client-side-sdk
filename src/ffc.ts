@@ -3,10 +3,10 @@ import { eventHub } from "./events";
 import { logger } from "./logger";
 import store from "./store";
 import { networkService } from "./network.service";
-import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariation, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
+import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, validateOption, validateUser } from "./utils";
 import { Queue } from "./queue";
-import { featureFlagEvaluatedTopic, featureFlagInsightFlushTopic, websocketReconnectTopic } from "./constants";
+import { featureFlagEvaluatedTopic, insightsFlushTopic, insightsTopic, websocketReconnectTopic } from "./constants";
 import autoCapture from "./autocapture";
 
 
@@ -41,7 +41,7 @@ class Ffc {
   private _readyEventEmitted: boolean = false;
   private _readyPromise: Promise<IFeatureFlagBase[]>;
 
-  private _featureFlagInsightQueue: Queue<IFeatureFlagVariation> = new Queue<IFeatureFlagVariation>(1, featureFlagInsightFlushTopic);
+  private _insightsQueue: Queue<IInsight> = new Queue<IInsight>(1, insightsFlushTopic);
   private _option: IOption = {
     secret: '',
     api: 'https://api.feature-flags.co',
@@ -69,14 +69,18 @@ class Ffc {
     });
 
     // track feature flag usage data
-    eventHub.subscribe(featureFlagInsightFlushTopic, () => {
+    eventHub.subscribe(insightsFlushTopic, () => {
       if (this._option.enableDataSync){
-        networkService.sendFeatureFlagInsights(this._featureFlagInsightQueue.removeAll());
+        networkService.sendInsights(this._insightsQueue.removeAll());
       }
     });
 
-    eventHub.subscribe(featureFlagEvaluatedTopic, (data: IFeatureFlagVariation) => {
-      this._featureFlagInsightQueue.add(data);
+    eventHub.subscribe(featureFlagEvaluatedTopic, (data: IInsight) => {
+      this._insightsQueue.add(data);
+    });
+
+    eventHub.subscribe(insightsTopic, (data: IInsight) => {
+      this._insightsQueue.add(data);
     });
   }
 
@@ -216,9 +220,12 @@ class Ffc {
     return !!variation ? variation.toLocaleLowerCase() === 'true' : defaultResult;
   }
 
-  async sendCustomEvent(data: ICustomEvent[]) {
-    data = data || [];
-    return await networkService.track(data.map(d => Object.assign({}, d, {type: 'CustomEvent'})));
+  sendCustomEvent(data: ICustomEvent[]): void {
+    (data || []).forEach(d => this._insightsQueue.add({
+      insightType: InsightType.customEvent,
+      type: 'CustomEvent',
+      ...d
+    }))
   }
 }
 

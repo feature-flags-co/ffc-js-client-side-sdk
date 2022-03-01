@@ -1,6 +1,6 @@
 {
   "name": "ffc-js-client-side-sdk",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "https://github.com/feature-flags-co/ffc-js-client-sdk",
   "main": "esm/ffc.js",
   "scripts": {

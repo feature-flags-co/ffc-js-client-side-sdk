@@ -1,7 +1,7 @@
 import { websocketReconnectTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
-import { ICustomEvent, IExptMetricSetting, IFeatureFlagVariation, IStreamResponse, IUser, IZeroCode } from "./types";
+import { ICustomEvent, IExptMetricSetting, IFeatureFlagVariation, IInsight, InsightType, IStreamResponse, IUser, IZeroCode } from "./types";
 import { ffcguid, generateConnectionToken, throttleAsync } from "./utils";
 
 const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
@@ -118,57 +118,48 @@ class NetworkService {
     });
   }
 
-  sendFeatureFlagInsights = throttleAsync(ffcguid(), async (variations: IFeatureFlagVariation[]) => {
-    if (!this.secret || !this.user || !variations || variations.length === 0) {
+  private __getUserInfo(): any {
+    const { userName, email, country, id, customizedProperties } = this.user!;
+    return {
+      userName,
+      email,
+      country,
+      keyId: id,
+      customizedProperties: customizedProperties,
+    }
+  }
+
+  sendInsights = throttleAsync(ffcguid(), async (data: IInsight[]): Promise<void> => {
+    if (!this.secret || !this.user || !data || data.length === 0) {
       return;
     }
   
     try {
-      const { userName, email, country, id, customizedProperties } = this.user;
       const payload = [{
-        userName,
-        email,
-        country,
-        userKeyId: id,
-        customizedProperties: customizedProperties,
-        userVariations: variations.map(v => ({
+        user: this.__getUserInfo(),
+        userVariations: data.filter(d => d.insightType === InsightType.featureFlagUsage).map(v => ({
           featureFlagKeyName: v.id,
           sendToExperiment: v.sendToExperiment,
           timestamp: v.timestamp,
           variation: {
-            localId: v.variation.id,
-            variationValue: v.variation.value
+            localId: v.variation!.id,
+            variationValue: v.variation!.value
           }
+        })),
+        metrics: data.filter(d => d.insightType !== InsightType.featureFlagUsage).map(d => ({
+          route: location.pathname,
+          numericValue: d.numericValue === null || d.numericValue === undefined? 1 : d.numericValue,
+          appType: this.appType,
+          eventName: d.eventName,
+          type: d.type
         }))
       }];
   
-      await post(`${this.api}/api/public/analytics/track/feature-flags`, payload, { envSecret: this.secret });
+      await post(`${this.api}/api/public/track`, payload, { envSecret: this.secret });
     } catch (err) {
       logger.logDebug(err);
     }
   })
-
-  async track(data: ICustomEvent[]): Promise<void> {
-    try {
-      const payload = data.map(d => Object.assign({}, {
-        secret: this.secret,
-        route: location.pathname,
-        numericValue: 1,
-        appType: this.appType,
-        user: {
-          fFUserName: this.user?.userName,
-          fFUserEmail: this.user?.email,
-          fFUserCountry: this.user?.country,
-          fFUserKeyId: this.user?.id,
-          fFUserCustomizedProperties: this.user?.customizedProperties
-        }
-      }, d));
-  
-      await post(`${this.api}/ExperimentsDataReceiver/PushData`, payload, { envSecret: this.secret! });
-    } catch (err) {
-      logger.logDebug(err);
-    }
-  }
 
   async getActiveExperimentMetricSettings(): Promise<IExptMetricSetting[] | []> {
     const exptMetricSettingLocalStorageKey = 'ffc_expt_metric';

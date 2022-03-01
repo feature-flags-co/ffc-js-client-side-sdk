@@ -1,7 +1,7 @@
 import { featureFlagEvaluatedTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
-import { FeatureFlagUpdateOperation, IDataStore, IFeatureFlag, StreamResponseEventType } from "./types";
+import { FeatureFlagUpdateOperation, IDataStore, IFeatureFlag, InsightType, StreamResponseEventType } from "./types";
 
 const DataStoreStorageKey = 'ffcdatastore';
 
@@ -59,6 +59,7 @@ class Store {
     const featureFlag = this._store.featureFlags[key];
     if (!!featureFlag) {
       eventHub.emit(featureFlagEvaluatedTopic, {
+        insightType: InsightType.featureFlagUsage,
         id: featureFlag.id,
         timestamp: Date.now(),
         sendToExperiment: featureFlag.sendToExperiment,

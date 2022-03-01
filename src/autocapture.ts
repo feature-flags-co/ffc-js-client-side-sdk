@@ -1,9 +1,9 @@
 import Ffc from "./ffc";
 import { eventHub } from "./events";
 import store from "./store";
-import { featureFlagEvaluatedTopic } from "./constants";
+import { featureFlagEvaluatedTopic, insightsTopic } from "./constants";
 import { networkService } from "./network.service";
-import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, IZeroCode, UrlMatchType } from "./types";
+import { EventType, FeatureFlagType, ICssSelectorItem, IExptMetricSetting, InsightType, IZeroCode, UrlMatchType } from "./types";
 import { extractCSS, groupBy, isUrlMatch } from "./utils";
 
 declare global {
@@ -55,13 +55,12 @@ class AutoCapture {
       .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
 
     if (!!pageViewSetting) {
-      const data = [{
+      eventHub.emit(insightsTopic, {
+        insightType: InsightType.pageView,
         type: 'PageView',
         route: window.location.href,
         eventName: pageViewSetting.eventName
-      }];
-
-      await networkService.track(data);
+      });
     }
 
     window.addEventListener("locationchange", async function () {
@@ -69,12 +68,12 @@ class AutoCapture {
         .find(em => em.eventType === EventType.PageView && em.targetUrls.findIndex(t => isUrlMatch(t.matchType, t.url)) !== -1);
 
       if (!!pageViewSetting) {
-        const data = [{
+        eventHub.emit(insightsTopic, {
+          insightType: InsightType.pageView,
+          type: 'PageView',
           route: window.location.href,
           eventName: pageViewSetting.eventName
-        }];
-
-        await networkService.track(data);
+        });
       }
     });
   }
@@ -105,7 +104,12 @@ class AutoCapture {
         eventName: target.dataffceventname
       }];
     
-      networkService.track(data);
+      eventHub.emit(insightsTopic, {
+        insightType: InsightType.click,
+        type: 'Click',
+        route: window.location.href,
+        eventName: target.dataffceventname
+      });
     }
 
     const clickSetting = exptMetricSettings
@@ -134,6 +138,7 @@ class AutoCapture {
             const featureFlag = store.getFeatureFlag(zeroCodeSetting.featureFlagKey);
             if (!!featureFlag) {
               eventHub.emit(featureFlagEvaluatedTopic, {
+                insightType: InsightType.featureFlagUsage,
                 id: featureFlag.id,
                 timestamp: Date.now(),
                 sendToExperiment: featureFlag.sendToExperiment,
