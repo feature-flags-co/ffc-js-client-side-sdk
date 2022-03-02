@@ -167,7 +167,7 @@ class NetworkService {
         const result = await get(`${this.api}/api/public/sdk/experiments`, { envSecret: this.secret! });
 
         localStorage.setItem(exptMetricSettingLocalStorageKey, JSON.stringify(result.data));
-        return result;
+        return result.data;
     } catch (error) {
         console.log(error);
         return !!localStorage.getItem(exptMetricSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(exptMetricSettingLocalStorageKey) as string) : [];
@@ -180,7 +180,7 @@ async getZeroCodeSettings(): Promise<IZeroCode[] | []> {
         const result = await get(`${this.api}/api/public/sdk/zero-code`, { envSecret: this.secret! });
 
         localStorage.setItem(zeroCodeSettingLocalStorageKey, JSON.stringify(result.data));
-        return result;
+        return result.data;
     } catch (error) {
         console.log(error);
         return !!localStorage.getItem(zeroCodeSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string) : [];
