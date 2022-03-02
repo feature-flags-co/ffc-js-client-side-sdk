@@ -30,6 +30,7 @@ class AutoCapture {
   }
 
   private async capturePageViews(exptMetricSettings: IExptMetricSetting[]) {
+    exptMetricSettings = exptMetricSettings || [];
     const self: AutoCapture = this;
     history.pushState = (f => function pushState(this: any) {
       const argumentsTyped: any = arguments;
