@@ -189,10 +189,10 @@ class Store {
                 if (prop === "newValue") {
                   setTimeout(() => eventHub.emit(featureFlagEvaluatedTopic, {
                     insightType: InsightType.featureFlagUsage,
-                    id: Reflect.get(target, 'id', receiver),
+                    id: key,
                     timestamp: Date.now(),
-                    sendToExperiment: Reflect.get(target, 'sendToExperiment', receiver),
-                    variation: Reflect.get(target, 'newValue', receiver)
+                    sendToExperiment: storageFf.sendToExperiment,
+                    variation: storageFf.variationOptions.find(o => o.value === storageFf.variation)
                   }), 0)
                 }
 
