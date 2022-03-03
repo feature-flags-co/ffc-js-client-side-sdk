@@ -2,19 +2,25 @@ import { ICSS, IOption, IUser, UrlMatchType } from "./types";
 
 
 // generate default user info
-export function ffcguid() {
+export function ffcguid(): string {
   let ffcHomePageGuid = localStorage.getItem("ffc-guid");
   if (ffcHomePageGuid) {
     return ffcHomePageGuid;
   }
   else {
-    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-    localStorage.setItem("ffc-guid", uuid);
-    return uuid;
+    const id = uuid();
+    localStorage.setItem("ffc-guid", id);
+    return id;
   }
+}
+
+export function uuid(): string {
+  let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+
+  return uuid;
 }
 
 export function validateUser(user: IUser): string | null {
@@ -120,59 +126,6 @@ export function generateConnectionToken(text: string): string {
 }
 
 /********************** encode text end *****************************/
-export function throttle(fn: Function, ms: number) {
-  let timer:any = 0
-  return function(...args) {
-    clearTimeout(timer)
-    timer = setTimeout(fn.bind(null, ...args), ms || 0)
-  }
-}
-
-const API_CALL_RESULTS : {[key: string]: string} = {};
-const FOOT_PRINTS: string[] = [];
-let _throttleWait: number = 5 * 60 * 1000; // millionseconds
-export function throttleAsync (key: string, callback: any): any {
-  let waiting = false; 
-
-  let getFootprint = (args: any): string => {
-    const params = args.map(arg => {
-      if (
-        typeof arg === 'object' &&
-        typeof arg !== "function" &&
-        arg !== null
-      ) {
-        if (Array.isArray(arg)) {
-          return arg.map(a => ({...a, ...{timestamp: null}}))
-        } else {
-          return {...arg, ...{timestamp: null}};
-        }
-      }
-
-      return arg;
-    });
-
-    return key + JSON.stringify(params);
-  };
-
-  return async function (...args) {
-    const footprint = getFootprint(args);
-    const idx = FOOT_PRINTS.findIndex(f => f === footprint);
-    if (!waiting || idx === -1) {
-      waiting = true;
-      if (idx === -1) {
-        FOOT_PRINTS.push(footprint);
-      }
-      
-      API_CALL_RESULTS[footprint] = await callback.apply(null, args);
-      
-      setTimeout(function () {
-          waiting = false;
-      }, _throttleWait);
-    }
-
-    return API_CALL_RESULTS[footprint];
-  }
-}
 
 // test if the current page url mathch the given url
 export function isUrlMatch(matchType: UrlMatchType, url: string): boolean {

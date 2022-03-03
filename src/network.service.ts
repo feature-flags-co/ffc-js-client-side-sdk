@@ -1,8 +1,9 @@
 import { websocketReconnectTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
-import { ICustomEvent, IExptMetricSetting, IFeatureFlagVariation, IInsight, InsightType, IStreamResponse, IUser, IZeroCode } from "./types";
-import { ffcguid, generateConnectionToken, throttleAsync } from "./utils";
+import { IExptMetricSetting, IInsight, InsightType, IStreamResponse, IUser, IZeroCode } from "./types";
+import { generateConnectionToken } from "./utils";
+import throttleUtil from "./throttleutil";
 
 const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
 let retryCounter = 0;
@@ -27,6 +28,7 @@ class NetworkService {
     }
 
     this.user = { ...user };
+    throttleUtil.setKey(this.user?.id);
   }
 
   private socket: WebSocket | undefined;
@@ -129,7 +131,7 @@ class NetworkService {
     }
   }
 
-  sendInsights = throttleAsync(ffcguid(), async (data: IInsight[]): Promise<void> => {
+  sendInsights = throttleUtil.throttleAsync(async (data: IInsight[]): Promise<void> => {
     if (!this.secret || !this.user || !data || data.length === 0) {
       return;
     }

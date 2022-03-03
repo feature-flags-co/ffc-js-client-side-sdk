@@ -130,7 +130,6 @@ class Store {
   private _emitUpdateEvents(updatedFeatureFlags: any[]): void {
     if (updatedFeatureFlags.length > 0) {
       updatedFeatureFlags.forEach(({ id, operation, data }) => eventHub.emit(`ff_${operation}:${data.id}`, data));
-
       eventHub.emit(`ff_${FeatureFlagUpdateOperation.update}`, updatedFeatureFlags.map(item => item.data));
     }
   }
@@ -180,11 +179,26 @@ class Store {
           return {
             id: key,
             operation: FeatureFlagUpdateOperation.update,
-            data: {
+            sendToExperiment: storageFf.sendToExperiment,
+            data: new Proxy({
               id: key,
               oldValue: ff?.variation,
               newValue: storageFf.variation
-            }
+            }, {
+              get(target, prop, receiver) {
+                if (prop === "newValue") {
+                  setTimeout(() => eventHub.emit(featureFlagEvaluatedTopic, {
+                    insightType: InsightType.featureFlagUsage,
+                    id: Reflect.get(target, 'id', receiver),
+                    timestamp: Date.now(),
+                    sendToExperiment: Reflect.get(target, 'sendToExperiment', receiver),
+                    variation: Reflect.get(target, 'newValue', receiver)
+                  }), 0)
+                }
+
+                return Reflect.get(target, prop, receiver);
+              },
+            })
           }
         });
 
