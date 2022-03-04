@@ -180,25 +180,11 @@ class Store {
             id: key,
             operation: FeatureFlagUpdateOperation.update,
             sendToExperiment: storageFf.sendToExperiment,
-            data: new Proxy({
+            data: {
               id: key,
               oldValue: ff?.variation,
               newValue: storageFf.variation
-            }, {
-              get(target, prop, receiver) {
-                if (prop === "newValue") {
-                  setTimeout(() => eventHub.emit(featureFlagEvaluatedTopic, {
-                    insightType: InsightType.featureFlagUsage,
-                    id: key,
-                    timestamp: Date.now(),
-                    sendToExperiment: storageFf.sendToExperiment,
-                    variation: storageFf.variationOptions.find(o => o.value === storageFf.variation)
-                  }), 0)
-                }
-
-                return Reflect.get(target, prop, receiver);
-              },
-            })
+            }
           }
         });
 

@@ -27,8 +27,6 @@ export interface IVariationOption {
   value: string
 }
 
-
-
 export interface IFeatureFlagVariation {
   id?: string,
   sendToExperiment?: boolean
@@ -37,6 +35,12 @@ export interface IFeatureFlagVariation {
     id: number,
     value: string,
   }
+}
+
+export interface IFeatureFlagVariationBuffer {
+  id: string,
+  timestamp: number,
+  variationValue: string
 }
 
 export enum InsightType {

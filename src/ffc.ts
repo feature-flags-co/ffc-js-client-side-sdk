@@ -3,10 +3,10 @@ import { eventHub } from "./events";
 import { logger } from "./logger";
 import store from "./store";
 import { networkService } from "./network.service";
-import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
+import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariationBuffer, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, validateOption, validateUser } from "./utils";
 import { Queue } from "./queue";
-import { featureFlagEvaluatedTopic, insightsFlushTopic, insightsTopic, websocketReconnectTopic } from "./constants";
+import { featureFlagEvaluatedBufferTopic, featureFlagEvaluatedTopic, insightsFlushTopic, insightsTopic, websocketReconnectTopic } from "./constants";
 import autoCapture from "./autocapture";
 
 
@@ -42,6 +42,7 @@ class Ffc {
   private _readyPromise: Promise<IFeatureFlagBase[]>;
 
   private _insightsQueue: Queue<IInsight> = new Queue<IInsight>(1, insightsFlushTopic);
+  private _featureFlagEvaluationBuffer: Queue<IFeatureFlagVariationBuffer> = new Queue<IFeatureFlagVariationBuffer>();
   private _option: IOption = {
     secret: '',
     api: 'https://api.feature-flags.co',
@@ -54,7 +55,34 @@ class Ffc {
   constructor() {
     this._readyPromise = new Promise<IFeatureFlagBase[]>((resolve, reject) => {
       this.on('ready', () => {
-        resolve(mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
+        const featureFlags = store.getFeatureFlags();
+        resolve(mapFeatureFlagsToFeatureFlagBaseList(featureFlags));
+        if (this._option.enableDataSync){
+          const buffered = this._featureFlagEvaluationBuffer.flush().map(f => {
+            const featureFlag = featureFlags[f.id];
+            if (!featureFlag) {
+              logger.log(`Called unexisting feature flag: ${f.id}`);
+              return null;
+            }
+            
+            const variation = featureFlag.variationOptions.find(o => o.value === f.variationValue);
+            if (!variation) {
+              logger.log(`Sent buffered insight for feature flag: ${f.id} with unexisting default variation: ${f.variationValue}`);
+            } else {
+              logger.logDebug(`Sent buffered insight for feature flag: ${f.id} with variation: ${variation.value}`);
+            }
+
+            return {
+              insightType: InsightType.featureFlagUsage,
+              id: featureFlag.id,
+              timestamp: f.timestamp,
+              sendToExperiment: featureFlag.sendToExperiment,
+              variation: variation || { id: -1, value: f.variationValue}
+            }
+          });
+
+          networkService.sendInsights(buffered.filter(x => !!x));
+        }
       });
     });
 
@@ -68,10 +96,14 @@ class Ffc {
       });
     });
 
+    eventHub.subscribe(featureFlagEvaluatedBufferTopic, (data: IFeatureFlagVariationBuffer) => {
+      this._featureFlagEvaluationBuffer.add(data);
+    });
+
     // track feature flag usage data
     eventHub.subscribe(insightsFlushTopic, () => {
       if (this._option.enableDataSync){
-        networkService.sendInsights(this._insightsQueue.removeAll());
+        networkService.sendInsights(this._insightsQueue.flush());
       }
     });
 
@@ -117,7 +149,6 @@ class Ffc {
     this._option.user = Object.assign({}, user);
 
     store.userId = this._option.user.id;
-    //setTimeout(() => this.bootstrap(), 20000);
 
     networkService.identify(this._option.user);
     this.bootstrap();
@@ -212,11 +243,11 @@ class Ffc {
   }
 
   variation(key: string, defaultResult: string): string {
-    return store.getVariation(key) || defaultResult;
+    return variationWithInsightBuffer(key, defaultResult) || defaultResult;
   }
 
   boolVariation(key: string, defaultResult: boolean): boolean {
-    const variation = store.getVariation(key);
+    const variation = variationWithInsightBuffer(key, defaultResult);
     return !!variation ? variation.toLocaleLowerCase() === 'true' : defaultResult;
   }
 
@@ -227,6 +258,19 @@ class Ffc {
       ...d
     }))
   }
+}
+
+const variationWithInsightBuffer = (key: string, defaultResult: string | boolean) => {
+  const variation = store.getVariation(key);
+  if (variation === undefined) {
+    eventHub.emit(featureFlagEvaluatedBufferTopic, {
+      id: key,
+      timestamp: Date.now(),
+      variationValue: `${defaultResult}`
+    } as IFeatureFlagVariationBuffer);
+  }
+
+  return variation;
 }
 
 const ffc = new Ffc();
