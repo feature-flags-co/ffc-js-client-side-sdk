@@ -1,7 +1,19 @@
+export type FeatureFlagValue = any;
+
+export interface IFeatureFlagSet {
+  [key: string]: FeatureFlagValue;
+}
+
+export interface IFeatureFlagChange {
+  id: string,
+  oldValue: FeatureFlagValue,
+  newValue: FeatureFlagValue
+}
+
 export interface IOption {
   secret: string,
   anonymous?: boolean,
-  boostrap?: IFeatureFlag[],
+  bootstrap?: IFeatureFlag[],
   devModePassword?: string,
   api?: string,
   appType?: string,
@@ -24,7 +36,7 @@ export interface ICustomizedProperty {
 
 export interface IVariationOption {
   id: number,
-  value: string
+  value: FeatureFlagValue
 }
 
 export interface IFeatureFlagVariation {
@@ -33,14 +45,14 @@ export interface IFeatureFlagVariation {
   timestamp?: number,
   variation?: {
     id: number,
-    value: string,
+    value: FeatureFlagValue,
   }
 }
 
 export interface IFeatureFlagVariationBuffer {
   id: string,
   timestamp: number,
-  variationValue: string
+  variationValue: FeatureFlagValue
 }
 
 export enum InsightType {
@@ -56,7 +68,7 @@ export interface IInsight extends IFeatureFlagVariation, ICustomEvent {
 
 export interface IFeatureFlagBase {
   id: string, // the keyname
-  variation: string,
+  variation: FeatureFlagValue,
 }
 
 export interface IFeatureFlag extends IFeatureFlagBase{

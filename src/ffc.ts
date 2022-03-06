@@ -3,7 +3,7 @@ import { eventHub } from "./events";
 import { logger } from "./logger";
 import store from "./store";
 import { networkService } from "./network.service";
-import { ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariationBuffer, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
+import { IFeatureFlagSet, ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariationBuffer, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
 import { ffcguid, validateOption, validateUser } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedBufferTopic, featureFlagEvaluatedTopic, insightsFlushTopic, insightsTopic, websocketReconnectTopic } from "./constants";
@@ -37,7 +37,7 @@ function mapFeatureFlagsToFeatureFlagBaseList(featureFlags: { [key: string]: IFe
   });
 }
 
-class Ffc {
+export class Ffc {
   private _readyEventEmitted: boolean = false;
   private _readyPromise: Promise<IFeatureFlagBase[]>;
 
@@ -52,9 +52,12 @@ class Ffc {
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
   };
 
+  public isInitialized: boolean = false;
+
   constructor() {
     this._readyPromise = new Promise<IFeatureFlagBase[]>((resolve, reject) => {
       this.on('ready', () => {
+        this.isInitialized = true;
         const featureFlags = store.getFeatureFlags();
         resolve(mapFeatureFlagsToFeatureFlagBaseList(featureFlags));
         if (this._option.enableDataSync){
@@ -172,7 +175,7 @@ class Ffc {
   }
 
   bootstrap(featureFlags?: IFeatureFlag[]): void {
-    featureFlags = featureFlags || this._option.boostrap;
+    featureFlags = featureFlags || this._option.bootstrap;
     if (featureFlags && featureFlags.length > 0) {
       const data = {
         featureFlags: featureFlags.reduce((res, curr) => {
@@ -258,6 +261,19 @@ class Ffc {
       ...d
     }))
   }
+
+  sendFeatureFlagInsight(key: string, variation: string) {
+    this.variation(key, variation);
+  }
+
+  getAllFeatureFlags(): IFeatureFlagSet {
+    const flags = store.getFeatureFlags();
+
+    return Object.values(flags).reduce((acc, curr) => {
+      acc[curr.id] = curr.variation;
+      return acc;
+    }, {});
+  }
 }
 
 const variationWithInsightBuffer = (key: string, defaultResult: string | boolean) => {
@@ -273,9 +289,9 @@ const variationWithInsightBuffer = (key: string, defaultResult: string | boolean
   return variation;
 }
 
-const ffc = new Ffc();
-window['activateFfcDevMode'] = (password?: string) => ffc.activateDevMode(password);
-window['quitFfcDevMode'] = () => ffc.quitDevMode();
+const ffcClient = new Ffc();
+window['activateFfcDevMode'] = (password?: string) => ffcClient.activateDevMode(password);
+window['quitFfcDevMode'] = () => ffcClient.quitDevMode();
 
-export default ffc;
+export default ffcClient;
 

@@ -1,7 +1,7 @@
 import { featureFlagEvaluatedTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
-import { FeatureFlagUpdateOperation, IDataStore, IFeatureFlag, InsightType, StreamResponseEventType } from "./types";
+import { FeatureFlagUpdateOperation, IDataStore, IFeatureFlag, IFeatureFlagChange, InsightType, StreamResponseEventType } from "./types";
 
 const DataStoreStorageKey = 'ffcdatastore';
 
@@ -184,7 +184,7 @@ class Store {
               id: key,
               oldValue: ff?.variation,
               newValue: storageFf.variation
-            }
+            } as IFeatureFlagChange
           }
         });
 
