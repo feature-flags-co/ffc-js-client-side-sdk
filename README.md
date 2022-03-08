@@ -81,7 +81,7 @@ Ffc.init(option);
 ```
 
 The complete list of the available parameters in option:
-- **secret**: the client side secret of your environment. **mandatory**
+- **secret**: the client side secret of your environment. **mandatory** (NB. this becomes optional if enableDataSync equals false)
 - **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be set later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
 - **bootstrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
 - **enableDataSync**: false if you do not want to sync data with remote server, in this case feature flags must be set to **bootstrap** option or be passed to the method **bootstrap**. The default value is true. **not mandatory** 
