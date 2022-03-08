@@ -5,9 +5,8 @@ lib/			// ES5(commonjs) + source + .d.ts
 lib-esm/		// ES5(esmodule) + source + .d.ts
 
 2. publish
-    2.1 npm run build
-    2.2 npm login
-    2.3 npm publish --access public
+    2.1 npm login
+    2.2 npm publish --access public
 
 3. Ref
     pageview: https://dev.to/zigabrencic/analytics-with-vanilla-js-page-views-47pb

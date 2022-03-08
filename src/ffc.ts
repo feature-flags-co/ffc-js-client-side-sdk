@@ -200,6 +200,11 @@ export class Ffc {
           eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
         }
       });
+    } else {
+      if (!this._readyEventEmitted) {
+        this._readyEventEmitted = true;
+        eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
+      }
     }
     
     devMode.init(this._option.devModePassword || '');
@@ -252,6 +257,10 @@ export class Ffc {
   boolVariation(key: string, defaultResult: boolean): boolean {
     const variation = variationWithInsightBuffer(key, defaultResult);
     return !!variation ? variation.toLocaleLowerCase() === 'true' : defaultResult;
+  }
+
+  getUser(): IUser {
+    return { ...this._option.user! };
   }
 
   sendCustomEvent(data: ICustomEvent[]): void {

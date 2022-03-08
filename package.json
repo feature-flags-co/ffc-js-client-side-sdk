@@ -1,11 +1,12 @@
 {
   "name": "ffc-js-client-side-sdk",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "https://github.com/feature-flags-co/ffc-js-client-sdk",
   "main": "esm/ffc.js",
   "scripts": {
     "build": "rimraf umd && rimraf esm && tsc && webpack --mode production",
     "watch": "rimraf umd && webpack --watch --mode development",
+    "prepublishOnly": "npm run build",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
