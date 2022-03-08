@@ -136,10 +136,14 @@ export class Ffc {
 
     this._option = Object.assign({}, this._option, option, { api: (option.api || this._option.api)?.replace(/\/$/, '') });
 
-    networkService.init(this._option.api!, this._option.secret, this._option.appType!);
+    if (this._option.enableDataSync) {
+      networkService.init(this._option.api!, this._option.secret, this._option.appType!);
+    }
     
     this.identify(option.user || createorGetAnonymousUser());
-    autoCapture.init();
+    if (this._option.enableDataSync) {
+      autoCapture.init();
+    }
   }
 
   identify(user: IUser): void {
