@@ -24,18 +24,20 @@ class NetworkService {
 
   identify(user: IUser) {
     if (this.user?.id !== user.id) {
-      this.socket?.close();
-    }
+      this.socket?.close(4003, 'identify, do not reconnect');
+      this.socket = undefined;
 
-    this.user = { ...user };
-    throttleUtil.setKey(this.user?.id);
+      this.user = { ...user };
+      throttleUtil.setKey(this.user?.id);
+    }
   }
 
-  private socket: WebSocket | undefined;
+  private socket: WebSocket | undefined | any;
 
   createConnection(timestamp: number, onMessage: (response: IStreamResponse) => any) {
     const that = this;
     if (that.socket) {
+      onMessage({} as IStreamResponse);
       return;
     }
 
@@ -44,7 +46,7 @@ class NetworkService {
     const url = this.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this.secret!)}`;
     that.socket = new WebSocket(url);
 
-    function sendPingMessage() {
+    function sendPingMessage(socket: WebSocket) {
       const payload = {
         messageType: 'ping',
         data: null
@@ -52,9 +54,9 @@ class NetworkService {
   
       setTimeout(() => {
         try {
-          if (that.socket?.readyState === that.socket!.OPEN) {
-            that.socket!.send(JSON.stringify(payload));
-            sendPingMessage();
+          if (socket?.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(payload));
+            sendPingMessage(socket);
           } else {
             logger.logDebug(`socket closed at ${new Date()}`);
           }
@@ -65,10 +67,9 @@ class NetworkService {
     }
   
     // Connection opened
-    that.socket.addEventListener('open', function (event) {
+    that.socket.addEventListener('open', function (this: WebSocket, event) {
       retryCounter = 0;
-  
-      logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
+
       const { userName, email, country, id, customizedProperties } =that.user!;
       const payload = {
         messageType: 'data-sync',
@@ -83,15 +84,15 @@ class NetworkService {
           timestamp
         }
       };
-  
-      that.socket?.send(JSON.stringify(payload));
-  
-      sendPingMessage();
+
+      // this is the websocket instance to which the current listener is binded to, it's different from that.socket
+      logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
+      this.send(JSON.stringify(payload));
+      sendPingMessage(this);
     });
   
     // Connection closed
     that.socket.addEventListener('close', function (event) {
-      that.socket = undefined;
       logger.logDebug('close');
       if (event.code === 4003) { // do not reconnect when 4003
         return;
@@ -105,7 +106,6 @@ class NetworkService {
     that.socket!.addEventListener('error', function (event) {
       // reconnect
       logger.logDebug('error');
-      that.socket!.close();
     });
   
     // Listen for messages
@@ -171,7 +171,7 @@ class NetworkService {
         localStorage.setItem(exptMetricSettingLocalStorageKey, JSON.stringify(result.data));
         return result.data;
     } catch (error) {
-        console.log(error);
+        logger.log(error);
         return !!localStorage.getItem(exptMetricSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(exptMetricSettingLocalStorageKey) as string) : [];
     }
 }
@@ -184,7 +184,7 @@ async getZeroCodeSettings(): Promise<IZeroCode[] | []> {
         localStorage.setItem(zeroCodeSettingLocalStorageKey, JSON.stringify(result.data));
         return result.data;
     } catch (error) {
-        console.log(error);
+      logger.log(error);
         return !!localStorage.getItem(zeroCodeSettingLocalStorageKey) ? JSON.parse(localStorage.getItem(zeroCodeSettingLocalStorageKey) as string) : [];
     }
 }
