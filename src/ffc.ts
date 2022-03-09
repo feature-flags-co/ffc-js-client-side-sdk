@@ -52,12 +52,9 @@ export class Ffc {
     //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
   };
 
-  public isInitialized: boolean = false;
-
   constructor() {
     this._readyPromise = new Promise<IFeatureFlagBase[]>((resolve, reject) => {
       this.on('ready', () => {
-        this.isInitialized = true;
         const featureFlags = store.getFeatureFlags();
         resolve(mapFeatureFlagsToFeatureFlagBaseList(featureFlags));
         if (this._option.enableDataSync){
@@ -90,13 +87,16 @@ export class Ffc {
     });
 
     // reconnect to websocket
-    eventHub.subscribe(websocketReconnectTopic, () => {
-      this.dataSync().then(() => {
+    eventHub.subscribe(websocketReconnectTopic, async () => {
+      try {
+        await this.dataSync();
         if (!this._readyEventEmitted) {
           this._readyEventEmitted = true;
           eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
         }
-      });
+      }catch(err) {
+        logger.log('data sync error', err);
+      }
     });
 
     eventHub.subscribe(featureFlagEvaluatedBufferTopic, (data: IFeatureFlagVariationBuffer) => {
@@ -127,10 +127,10 @@ export class Ffc {
     return this._readyPromise;
   }
 
-  init(option: IOption) {
+  async init(option: IOption) {
     const validateOptionResult = validateOption(option);
     if (validateOptionResult !== null) {
-      console.log(validateOptionResult);
+      logger.log(validateOptionResult);
       return;
     }
 
@@ -140,16 +140,16 @@ export class Ffc {
       networkService.init(this._option.api!, this._option.secret, this._option.appType!);
     }
     
-    this.identify(option.user || createorGetAnonymousUser());
+    await this.identify(option.user || createorGetAnonymousUser());
     if (this._option.enableDataSync) {
       autoCapture.init();
     }
   }
 
-  identify(user: IUser): void {
+  async identify(user: IUser): Promise<void> {
     const validateUserResult = validateUser(user);
     if (validateUserResult !== null) {
-      console.log(validateUserResult);
+      logger.log(validateUserResult);
       return;
     }
 
@@ -158,7 +158,7 @@ export class Ffc {
     store.userId = this._option.user.id;
 
     networkService.identify(this._option.user);
-    this.bootstrap();
+    await this.bootstrap();
   }
 
   activateDevMode(password?: string){
@@ -173,12 +173,13 @@ export class Ffc {
     devMode.quit();
   }
 
-  logout(): void {
+  async logout(): Promise<IUser> {
     const anonymousUser = createorGetAnonymousUser();
-    this.identify(anonymousUser);
+    await this.identify(anonymousUser);
+    return anonymousUser;
   }
 
-  bootstrap(featureFlags?: IFeatureFlag[]): void {
+  async bootstrap(featureFlags?: IFeatureFlag[]): Promise<void> {
     featureFlags = featureFlags || this._option.bootstrap;
     if (featureFlags && featureFlags.length > 0) {
       const data = {
@@ -191,24 +192,23 @@ export class Ffc {
       };
 
       store.setFullData(data);
-      eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
       logger.logDebug('bootstrapped with full data');
     }
 
     if (this._option.enableDataSync) {
       // start data sync
-      this.dataSync().then(() => {
-        store.isDevMode = !!store.isDevMode;
-        if (!this._readyEventEmitted) {
-          this._readyEventEmitted = true;
-          eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
-        }
-      });
-    } else {
-      if (!this._readyEventEmitted) {
-        this._readyEventEmitted = true;
-        eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
+      try {
+        await this.dataSync();
+      }catch(err) {
+        logger.log('data sync error', err);
       }
+      
+      store.isDevMode = !!store.isDevMode;
+    }
+
+    if (!this._readyEventEmitted) {
+      this._readyEventEmitted = true;
+      eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
     }
     
     devMode.init(this._option.devModePassword || '');
@@ -219,9 +219,9 @@ export class Ffc {
       const timestamp = Math.max(...Object.values(store.getFeatureFlags()).map(ff => ff.timestamp), 0);
 
       networkService.createConnection(timestamp, (message: IStreamResponse) => {
-        const { featureFlags } = message;
-
         if (message && message.userKeyId === this._option.user?.id) {
+          const { featureFlags } = message;
+
           switch (message.eventType) {
             case StreamResponseEventType.full: // full data
             case StreamResponseEventType.patch: // partial data
