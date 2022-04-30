@@ -87,13 +87,13 @@ class AutoCapture {
       if (mutationsList && mutationsList.length > 0) {
         observer.disconnect();
         await Promise.all([self.bindClickHandlers(exptMetricSettings), self.zeroCodeSettingsCheckVariation(zeroCodeSettings, observer)]);
-        observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+        observer.observe(document.body, { attributes: false, childList: true, subtree: true });
       }
     };
   
     const observer = new MutationObserver(callback);
     await Promise.all([this.bindClickHandlers(exptMetricSettings), this.zeroCodeSettingsCheckVariation(zeroCodeSettings, observer)]);
-    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+    observer.observe(document.body, { attributes: false, childList: true, subtree: true });
   }
 
   private async bindClickHandlers(exptMetricSettings: IExptMetricSetting[]) {
