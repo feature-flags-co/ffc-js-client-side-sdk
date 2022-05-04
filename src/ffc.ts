@@ -45,11 +45,10 @@ export class Ffc {
   private _featureFlagEvaluationBuffer: Queue<IFeatureFlagVariationBuffer> = new Queue<IFeatureFlagVariationBuffer>();
   private _option: IOption = {
     secret: '',
-    api: 'https://api.feature-flags.co',
+    api: 'https://api.featureflag.co',
     devModePassword: '',
     enableDataSync: true,
-    appType: 'javascript',
-    //streamEndpoint: IS_PROD ? '' : 'wss://localhost:5000/streaming',
+    appType: 'javascript'
   };
 
   constructor() {

@@ -2,7 +2,7 @@
 
 
 ## Introduction
-This is the JavaScript client side SDK for the feature management platform [feature-flags.co](feature-flags.co). We will document all the methods available in this SDK, and detail how they work.
+This is the JavaScript client side SDK for the feature management platform [feature-flags.co](https://www.featureflag.co). We will document all the methods available in this SDK, and detail how they work.
 
 Be aware, this is a client side SDK, it is intended for use in a single-user context, which can be mobile, desktop or embeded applications. This SDK can only be ran in a browser environment, it is not suitable for NodeJs applications, server side SDKs are available in our other repos.
 
@@ -35,12 +35,12 @@ yarn
 yarn add ffc-js-client-side-sdk
 ```
 
-browser (you can also self host the SDK alongside your other JavaScript code in production environment)
+<!-- browser (you can also self host the SDK alongside your other JavaScript code in production environment)
 ```
 <script src="https://assets.feature-flags.co/sdks/ffc-sdk.js" ></script>
 // or
 <script src="https://assets.feature-flags.co/sdks/ffc-sdk-[versionnumber].js" ></script>
-```
+``` -->
 
 To import the SDK:
 ```javascript
