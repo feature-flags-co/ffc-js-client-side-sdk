@@ -103,7 +103,7 @@ The complete list of the available parameters in option:
      ```
 
 #### Initialization delay
-Initializing the client makes a remote request to feature-flags.co, so it may take 100 milliseconds or more before the SDK emits the ready event. If you require feature flag values before rendering the page, we recommend bootstrapping the client. If you bootstrap the client, it will emit the ready event immediately.
+Initializing the client makes a remote request to featureflag.co, so it may take 100 milliseconds or more before the SDK emits the ready event. If you require feature flag values before rendering the page, we recommend bootstrapping the client. If you bootstrap the client, it will emit the ready event immediately.
 
 ### Get the varation value of a feature flag
 Two methods to get the variation of a feature flag

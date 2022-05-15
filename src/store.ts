@@ -75,6 +75,8 @@ class Store {
       this._store = {
         featureFlags: {} as { [key: string]: IFeatureFlag }
       };
+
+      this._dumpToStorage(this._store);
     }
       
     this.updateBulkFromRemote(data);
