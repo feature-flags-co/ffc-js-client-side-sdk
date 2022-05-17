@@ -6,7 +6,7 @@ const baseConfig = {
     [`ffc-sdk-${package.version}`]: './src/umd.ts',
     [`ffc-sdk`]: './src/umd.ts'
   },
-  //devtool: 'source-map',
+  devtool: 'source-map',
   module: {
     rules: [
       {

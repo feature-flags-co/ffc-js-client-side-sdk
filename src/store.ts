@@ -109,7 +109,7 @@ class Store {
         const remoteFf = featureFlags[id];
         const localFf = store!.featureFlags[id];
 
-        const predicate = !localFf || (!onlyInsertNewElement && remoteFf.timestamp > localFf.timestamp);
+        const predicate = !localFf || !onlyInsertNewElement;
         if (predicate) {
           store!.featureFlags[remoteFf.id] = Object.assign({}, remoteFf);
         }
