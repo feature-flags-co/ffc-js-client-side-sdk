@@ -152,6 +152,7 @@ export class Ffc {
       return;
     }
 
+    user.customizedProperties = user.customizedProperties?.map(p => ({name: p.name, value: `${p.value}`}));
     this._option.user = Object.assign({}, user);
 
     store.userId = this._option.user.id;
