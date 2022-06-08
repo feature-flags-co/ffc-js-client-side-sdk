@@ -5,14 +5,15 @@ import { IExptMetricSetting, IInsight, InsightType, IStreamResponse, IUser, IZer
 import { generateConnectionToken } from "./utils";
 import throttleUtil from "./throttleutil";
 
-const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
-let retryCounter = 0;
+const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000];
 
 class NetworkService {
   private user: IUser | undefined;
   private api: string | undefined;
   private secret: string | undefined;
   private appType: string | undefined;
+
+  private retryCounter = 0;
 
   constructor(){}
 
@@ -24,15 +25,76 @@ class NetworkService {
 
   identify(user: IUser) {
     if (this.user?.id !== user.id) {
-      this.socket?.close(4003, 'identify, do not reconnect');
-      this.socket = undefined;
-
       this.user = { ...user };
       throttleUtil.setKey(this.user?.id);
+
+      if (this.socket) {
+        this.sendUserIdentifyMessage(0);
+      }
+    }
+  }
+
+  private sendUserIdentifyMessage(timestamp: number) {
+    const { userName, email, country, id, customizedProperties } = this.user!;
+    const payload = {
+      messageType: 'data-sync',
+      data: {
+        user: {
+          userName,
+          email,
+          country,
+          userKeyId: id,
+          customizedProperties,
+        },
+        timestamp
+      }
+    };
+
+    try {
+      if (this.socket?.readyState === WebSocket.OPEN) {
+        logger.logDebug('sending user identify message');
+        this.socket?.send(JSON.stringify(payload));
+      } else {
+        logger.logDebug(`didn't send user identify message because socket not open`);
+      }
+    } catch (err) {
+      logger.logDebug(err);
     }
   }
 
   private socket: WebSocket | undefined | any;
+
+  private reconnect() {
+    this.socket = null;
+    const waitTime = socketConnectionIntervals[Math.min(this.retryCounter++, socketConnectionIntervals.length - 1)];
+    setTimeout(() => {
+      logger.logDebug('emit reconnect event');
+      eventHub.emit(websocketReconnectTopic, {});
+    }, waitTime);
+    logger.logDebug(waitTime);
+  }
+
+  private sendPingMessage() {
+    const payload = {
+      messageType: 'ping',
+      data: null
+    };
+
+    setTimeout(() => {
+      try {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+          logger.logDebug('sending ping')
+          this.socket.send(JSON.stringify(payload));
+          this.sendPingMessage();
+        } else {
+          logger.logDebug(`socket closed at ${new Date()}`);
+          this.reconnect();
+        }
+      } catch (err) {
+        logger.logDebug(err);
+      }
+    }, 18000);
+  }
 
   createConnection(timestamp: number, onMessage: (response: IStreamResponse) => any) {
     const that = this;
@@ -46,49 +108,13 @@ class NetworkService {
     const url = this.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this.secret!)}`;
     that.socket = new WebSocket(url);
 
-    function sendPingMessage(socket: WebSocket) {
-      const payload = {
-        messageType: 'ping',
-        data: null
-      };
-  
-      setTimeout(() => {
-        try {
-          if (socket?.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify(payload));
-            sendPingMessage(socket);
-          } else {
-            logger.logDebug(`socket closed at ${new Date()}`);
-          }
-        } catch (err) {
-          logger.logDebug(err);
-        }
-      }, 18000);
-    }
-  
     // Connection opened
     that.socket.addEventListener('open', function (this: WebSocket, event) {
-      retryCounter = 0;
-
-      const { userName, email, country, id, customizedProperties } =that.user!;
-      const payload = {
-        messageType: 'data-sync',
-        data: {
-          user: {
-            userName,
-            email,
-            country,
-            userKeyId: id,
-            customizedProperties,
-          },
-          timestamp
-        }
-      };
-
+      that.retryCounter = 0;
       // this is the websocket instance to which the current listener is binded to, it's different from that.socket
       logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
-      this.send(JSON.stringify(payload));
-      sendPingMessage(this);
+      that.sendUserIdentifyMessage(timestamp);
+      that.sendPingMessage();
     });
   
     // Connection closed
@@ -97,9 +123,8 @@ class NetworkService {
       if (event.code === 4003) { // do not reconnect when 4003
         return;
       }
-      const waitTime = socketConnectionIntervals[Math.min(retryCounter++, socketConnectionIntervals.length)];
-      setTimeout(() => eventHub.emit(websocketReconnectTopic, {}), waitTime);
-      logger.logDebug(waitTime);
+
+      that.reconnect();
     });
   
     // Connection error

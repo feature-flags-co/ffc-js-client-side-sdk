@@ -88,6 +88,7 @@ export class Ffc {
     // reconnect to websocket
     eventHub.subscribe(websocketReconnectTopic, async () => {
       try {
+        logger.logDebug('reconnecting');
         await this.dataSync();
         if (!this._readyEventEmitted) {
           this._readyEventEmitted = true;
