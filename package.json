@@ -1,6 +1,6 @@
 {
   "name": "ffc-js-client-side-sdk",
-  "version": "1.0.32",
+  "version": "1.0.33",
   "description": "https://github.com/feature-flags-co/ffc-js-client-sdk",
   "main": "esm/ffc.js",
   "scripts": {
@@ -30,7 +30,8 @@
   "homepage": "https://github.com/feature-flags-co/ffc-js-client-sdk#readme",
   "files": [
     "/esm",
-    "/umd"
+    "/umd",
+    "/src"
   ],
   "devDependencies": {
     "gts": "^3.1.0",
