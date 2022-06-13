@@ -24,13 +24,11 @@ class NetworkService {
   }
 
   identify(user: IUser) {
-    if (this.user?.id !== user.id) {
-      this.user = { ...user };
-      throttleUtil.setKey(this.user?.id);
+    this.user = { ...user };
+    throttleUtil.setKey(this.user?.id);
 
-      if (this.socket) {
-        this.sendUserIdentifyMessage(0);
-      }
+    if (this.socket) {
+      this.sendUserIdentifyMessage(0);
     }
   }
 
