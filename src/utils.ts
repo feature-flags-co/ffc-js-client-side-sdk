@@ -14,6 +14,18 @@ export function ffcguid(): string {
   }
 }
 
+export function serializeUser(user: IUser | undefined): string {
+  if (!user) {
+    return '';
+  }
+
+  const builtInProperties = `${user.id},${user.userName},${user.email},${user.country}`;
+
+  const customizedProperties = user.customizedProperties?.map(p => `${p.name}:${p.value}`).join(',');
+
+  return `${builtInProperties},${customizedProperties}`;
+}
+
 export function uuid(): string {
   let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
