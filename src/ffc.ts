@@ -1,12 +1,32 @@
 import devMode from "./devmode";
-import { eventHub } from "./events";
-import { logger } from "./logger";
+import {eventHub} from "./events";
+import {logger} from "./logger";
 import store from "./store";
-import { networkService } from "./network.service";
-import { IFeatureFlagSet, ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariationBuffer, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
-import {ffcguid, serializeUser, validateOption, validateUser} from "./utils";
-import { Queue } from "./queue";
-import { featureFlagEvaluatedBufferTopic, featureFlagEvaluatedTopic, insightsFlushTopic, insightsTopic, websocketReconnectTopic } from "./constants";
+import {networkService} from "./network.service";
+import {
+  FeatureFlagValue,
+  ICustomEvent,
+  IFeatureFlag,
+  IFeatureFlagBase,
+  IFeatureFlagSet,
+  IFeatureFlagVariationBuffer,
+  IInsight,
+  InsightType,
+  IOption,
+  IStreamResponse,
+  IUser,
+  StreamResponseEventType,
+  VariationDataType
+} from "./types";
+import {ffcguid, parseVariation, serializeUser, uuid, validateOption, validateUser} from "./utils";
+import {Queue} from "./queue";
+import {
+  featureFlagEvaluatedBufferTopic,
+  featureFlagEvaluatedTopic,
+  insightsFlushTopic,
+  insightsTopic,
+  websocketReconnectTopic
+} from "./constants";
 import autoCapture from "./autocapture";
 
 
@@ -33,7 +53,8 @@ function createorGetAnonymousUser(): IUser {
 function mapFeatureFlagsToFeatureFlagBaseList(featureFlags: { [key: string]: IFeatureFlag }): IFeatureFlagBase[] {
   return Object.keys(featureFlags).map((cur) => {
     const { id, variation } = featureFlags[cur];
-    return { id, variation};
+    const variationType = featureFlags[cur].variationType || VariationDataType.string;
+    return { id, variation: parseVariation(variationType, variation), variationType };
   });
 }
 
@@ -76,7 +97,7 @@ export class Ffc {
               id: featureFlag.id,
               timestamp: f.timestamp,
               sendToExperiment: featureFlag.sendToExperiment,
-              variation: variation || { id: -1, value: f.variationValue}
+              variation: variation || { id: -1, value: f.variationValue }
             }
           });
 
@@ -164,7 +185,7 @@ export class Ffc {
     await this.bootstrap(this._option.bootstrap, isUserChanged);
   }
 
-  activateDevMode(password?: string){
+  activateDevMode(password: string){
     devMode.activateDevMode(password);
   }
 
@@ -193,8 +214,8 @@ export class Ffc {
     if (featureFlags && featureFlags.length > 0) {
       const data = {
         featureFlags: featureFlags.reduce((res, curr) => {
-          const { id, variation, timestamp, variationOptions, sendToExperiment } = curr;
-          res[id] = { id, variation, timestamp, variationOptions, sendToExperiment };
+          const { id, variation, timestamp, variationOptions, sendToExperiment, variationType } = curr;
+          res[id] = { id, variation, timestamp, variationOptions, sendToExperiment, variationType: variationType || VariationDataType.string };
 
           return res;
         }, {} as { [key: string]: IFeatureFlag })
@@ -220,7 +241,7 @@ export class Ffc {
       eventHub.emit('ready', mapFeatureFlagsToFeatureFlagBaseList(store.getFeatureFlags()));
     }
 
-    devMode.init(this._option.devModePassword || '');
+    devMode.init(this._option.devModePassword || uuid());
   }
 
   private async dataSync(forceFullFetch?: boolean): Promise<any> {
@@ -236,8 +257,8 @@ export class Ffc {
             case StreamResponseEventType.patch: // partial data
               const data = {
                 featureFlags: featureFlags.reduce((res, curr) => {
-                  const { id, variation, timestamp, variationOptions, sendToExperiment } = curr;
-                  res[id] = { id, variation, timestamp, variationOptions, sendToExperiment };
+                  const { id, variation, timestamp, variationOptions, sendToExperiment, variationType } = curr;
+                  res[id] = { id, variation, timestamp, variationOptions, sendToExperiment, variationType: variationType || VariationDataType.string };
 
                   return res;
                 }, {} as { [key: string]: IFeatureFlag })
@@ -263,13 +284,17 @@ export class Ffc {
     });
   }
 
-  variation(key: string, defaultResult: string): string {
-    return variationWithInsightBuffer(key, defaultResult) || defaultResult;
+  variation(key: string, defaultResult: FeatureFlagValue): FeatureFlagValue {
+    const variation = variationWithInsightBuffer(key, defaultResult);
+    return variation === undefined ? defaultResult : variation;
   }
 
+  /**
+   * deprecated, you should use variation method directly
+   */
   boolVariation(key: string, defaultResult: boolean): boolean {
     const variation = variationWithInsightBuffer(key, defaultResult);
-    return !!variation ? variation.toLocaleLowerCase() === 'true' : defaultResult;
+    return variation === undefined ? defaultResult : variation?.toLocaleLowerCase() === 'true';
   }
 
   getUser(): IUser {
@@ -292,7 +317,7 @@ export class Ffc {
     const flags = store.getFeatureFlags();
 
     return Object.values(flags).reduce((acc, curr) => {
-      acc[curr.id] = curr.variation;
+      acc[curr.id] = parseVariation(curr.variationType, curr.variation);
       return acc;
     }, {});
   }
@@ -312,7 +337,7 @@ const variationWithInsightBuffer = (key: string, defaultResult: string | boolean
 }
 
 const ffcClient = new Ffc();
-window['activateFfcDevMode'] = (password?: string) => ffcClient.activateDevMode(password);
+window['activateFfcDevMode'] = (password: string) => ffcClient.activateDevMode(password);
 window['quitFfcDevMode'] = () => ffcClient.quitDevMode();
 
 export default ffcClient;

@@ -85,7 +85,7 @@ The complete list of the available parameters in option:
 - **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be set later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
 - **bootstrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
 - **enableDataSync**: false if you do not want to sync data with remote server, in this case feature flags must be set to **bootstrap** option or be passed to the method **bootstrap**. The default value is true. **not mandatory** 
-- **devModePassword**: if setted, the developer mode can only be activated by calling the method **activateDevMode** with password on Ffc . **not mandatory** 
+- **devModePassword**: if set, the developer mode is enabled and it must be activated by calling the method **activateDevMode** with password on Ffc . **not mandatory** 
 - **api**: the API url of the server, set it only if you are self hosting the back-end. **not mandatory**
 - **appType**: the app type, the default value is javascript, **not mandatory**
 - **user**: the user connected to your APP, can be ignored if **anonymous** equals to true. 
@@ -110,11 +110,9 @@ Two methods to get the variation of a feature flag
 
 ```javascript
 // Use this method for all cases
-var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
-
-// Syntactic sugar of the variation method, but this method return a boolean value instead of string. Use this method if the options are strings of true or false
-var the defaultValue = true; // or false
-var flagValue = Ffc.boolVariation("YOUR_FEATURE_KEY", defaultValue);
+// This method support type inspection, it returns the value with the type defined on remote,
+// so defaultValue should have the same type as defined on remote
+var flagValue = Ffc.variation("YOUR_FEATURE_KEY", defaultValue);
 ```
 
 ### Developer mode
@@ -123,7 +121,7 @@ Developer mode is a powerful tool we created allowing developers to manipulate t
 To activate the developer mode, the activateDevMode method should be called as following, the password parameter is 
 ```javascript
 // This will activate developer mode, you should be able to see an icon on bottom right of the screen. 
-// PASSWORD should be the same as the value passed to option or empty if devModePassword is not set
+// PASSWORD is mandatory and it should be the same as the value passed to option
 Ffc.activateDevMode('PASSWORD'); 
 
 // or
@@ -154,13 +152,14 @@ If you already have the feature flags available, two ways to pass them to the SD
     bootstrap = [{ // the array should contain all your feature flags
       id: string, // the feature flag key
       variation: string,
+      variationType: string, // the variation data type, string is used if not provided
       sendToExperiment: boolean,
       timestamp: number,
       variationOptions: [{
         id: number,
         value: string
       }]
-    }]
+    }],
     ...
   }
 
@@ -172,6 +171,7 @@ If you already have the feature flags available, two ways to pass them to the SD
 const featureflags = [{ // the array should contain all your feature flags
   id: string, // the feature flag key
   variation: string,
+  variationType: string, // the variation data type, string is used if not provided
   sendToExperiment: boolean,
   timestamp: number,
   variationOptions: [{

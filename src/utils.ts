@@ -1,4 +1,5 @@
-import { ICSS, IOption, IUser, UrlMatchType } from "./types";
+import {FeatureFlagValue, ICSS, IOption, IUser, IVariationOption, UrlMatchType, VariationDataType} from "./types";
+import {logger} from "./logger";
 
 
 // generate default user info
@@ -24,6 +25,49 @@ export function serializeUser(user: IUser | undefined): string {
   const customizedProperties = user.customizedProperties?.map(p => `${p.name}:${p.value}`).join(',');
 
   return `${builtInProperties},${customizedProperties}`;
+}
+
+export function isNumeric(str: string) {
+  if (typeof str != "string") return false // we only process strings!
+  // @ts-ignore
+  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+      !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+}
+
+export function parseVariation(type: VariationDataType, value: string): FeatureFlagValue {
+  switch (type) {
+    case VariationDataType.string:
+      return value;
+    case VariationDataType.boolean:
+      if (value === 'true') {
+        return true;
+      }
+
+      if (value === 'false') {
+        return false;
+      }
+
+      logger.log(`expected boolean value, but got ${value}`);
+      return value;
+    case VariationDataType.number:
+      if (isNumeric(value)) {
+        return +value;
+      }
+
+      logger.log(`expected numeric value, but got ${value}`);
+      return value;
+    case VariationDataType.json:
+      try {
+        return JSON.parse(value);
+      }
+      catch (e) {
+        logger.log(`expected json value, but got ${value}`);
+        return value;
+      }
+    default:
+      logger.log(`unexpected variation type ${type} for ${value}`);
+      return value;
+  }
 }
 
 export function uuid(): string {
