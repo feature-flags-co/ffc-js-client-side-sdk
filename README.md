@@ -191,7 +191,8 @@ The client object can emit JavaScript events. It emits a ready event when it rec
 
 ```javascript
 Ffc.on('ready', (data) => {
-  // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
+  // data has the following structure [ {id: 'featureFlagKey', variation: variationValue} ]
+  // variationValue has the type as defined on remote
   var flagValue = Ffc.variation("YOUR_FEATURE_KEY", defaultValue);
 });
 
@@ -229,7 +230,8 @@ To get notified when a feature flag is changed, we offer two methods
 - subscribe to the changes of any feature flag(s)
 ```javascript
 Ffc.on('ff_update', (changes) => {
-  // changes has this structure [{id: 'the feature_flag_key', oldValue: '', newValue: ''}]
+  // changes has this structure [{id: 'the feature_flag_key', oldValue: theOldValue, newValue: theNewValue }]
+  // theOldValue and theNewValue have the type as defined on remote
   ...
 });
 
@@ -238,8 +240,11 @@ Ffc.on('ff_update', (changes) => {
 ```javascript
 // replace feature_flag_key with your feature flag key
 Ffc.on('ff_update:feature_flag_key', (change) => {
-  // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
-  const myFeature = Ffc.variation('feature_flag_key', 'default value');
+  // change has this structure {id: 'the feature_flag_key', oldValue: theOldValue, newValue: theNewValue }
+  // theOldValue and theNewValue have the type as defined on remote
+  
+  // defaultValue should have the type as defined on remote
+  const myFeature = Ffc.variation('feature_flag_key', defaultValue);
   ...
 });
 
