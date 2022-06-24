@@ -110,7 +110,7 @@ Two methods to get the variation of a feature flag
 
 ```javascript
 // Use this method for all cases
-// This method support type inspection, it returns the value with the type defined on remote,
+// This method supports type inspection, it returns the value with the type defined on remote,
 // so defaultValue should have the same type as defined on remote
 var flagValue = Ffc.variation("YOUR_FEATURE_KEY", defaultValue);
 ```
@@ -192,7 +192,7 @@ The client object can emit JavaScript events. It emits a ready event when it rec
 ```javascript
 Ffc.on('ready', (data) => {
   // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
-  var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
+  var flagValue = Ffc.variation("YOUR_FEATURE_KEY", defaultValue);
 });
 
 ```
@@ -201,7 +201,8 @@ Or, you can use a promise instead of an event. The SDK has a method that return 
 
 ```javascript
 Ffc.waitUntilReady().then((data) => {
-  // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
+  // data has the following structure [ {id: 'featureFlagKey', variation: variationValue } ]
+  // variationValue has the type as defined on remote
   // initialization succeeded, flag values are now available
 });
 // or, with await:
