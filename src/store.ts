@@ -197,7 +197,7 @@ class Store {
             sendToExperiment: storageFf.sendToExperiment,
             data: {
               id: key,
-              oldValue: parseVariation(ff?.variationType, ff?.variation),
+              oldValue: ff ? parseVariation(ff.variationType, ff.variation): undefined,
               newValue: parseVariation(storageFf.variationType, storageFf.variation)
             } as IFeatureFlagChange
           }
