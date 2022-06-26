@@ -1,4 +1,4 @@
-import {FeatureFlagValue, ICSS, IOption, IUser, IVariationOption, UrlMatchType, VariationDataType} from "./types";
+import {FeatureFlagValue, ICSS, IOption, IUser, UrlMatchType, VariationDataType} from "./types";
 import {logger} from "./logger";
 
 
