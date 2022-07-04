@@ -181,7 +181,8 @@ export class Ffc {
     localStorage.setItem('current_user', serializeUser(this._option.user));
 
     store.userId = this._option.user.id;
-    networkService.identify(this._option.user);
+    networkService.identify(this._option.user, isUserChanged);
+
     await this.bootstrap(this._option.bootstrap, isUserChanged);
   }
 

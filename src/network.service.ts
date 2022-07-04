@@ -23,11 +23,11 @@ class NetworkService {
     this.appType = appType;
   }
 
-  identify(user: IUser) {
+  identify(user: IUser, sendIdentifyMessage: boolean) {
     this.user = { ...user };
     throttleUtil.setKey(this.user?.id);
 
-    if (this.socket) {
+    if (sendIdentifyMessage && this.socket) {
       this.sendUserIdentifyMessage(0);
     }
   }
