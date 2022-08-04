@@ -149,13 +149,13 @@ export class Ffc {
   }
 
   async init(option: IOption) {
-    const validateOptionResult = validateOption(option);
+    const validateOptionResult = validateOption({...this._option, ...option});
     if (validateOptionResult !== null) {
       logger.log(validateOptionResult);
       return;
     }
 
-    this._option = Object.assign({}, this._option, option, { api: (option.api || this._option.api)?.replace(/\/$/, '') });
+    this._option = {...this._option, ...option, ...{ api: (option.api || this._option.api)?.replace(/\/$/, '') }};
 
     if (this._option.enableDataSync) {
       networkService.init(this._option.api!, this._option.secret, this._option.appType!);
@@ -216,7 +216,7 @@ export class Ffc {
       const data = {
         featureFlags: featureFlags.reduce((res, curr) => {
           const { id, variation, timestamp, variationOptions, sendToExperiment, variationType } = curr;
-          res[id] = { id, variation, timestamp, variationOptions, sendToExperiment, variationType: variationType || VariationDataType.string };
+          res[id] = { id, variation, timestamp, variationOptions: variationOptions || [{id: 1, value: variation}], sendToExperiment, variationType: variationType || VariationDataType.string };
 
           return res;
         }, {} as { [key: string]: IFeatureFlag })
