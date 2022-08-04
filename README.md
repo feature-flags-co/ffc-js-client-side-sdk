@@ -149,16 +149,14 @@ If you already have the feature flags available, two ways to pass them to the SD
   // define the option with the bootstrap parameter
   const option = {
     ...
-    bootstrap = [{ // the array should contain all your feature flags
-      id: string, // the feature flag key
+    // the array should contain all your feature flags
+    bootstrap = [{
+      // feature flag key name
+      id: string,
+      // variation value
       variation: string,
-      variationType: string, // the variation data type, string is used if not provided
-      sendToExperiment: boolean,
-      timestamp: number,
-      variationOptions: [{
-        id: number,
-        value: string
-      }]
+      // variation data type, string will used if not specified
+      variationType: string
     }],
     ...
   }
@@ -168,16 +166,14 @@ If you already have the feature flags available, two ways to pass them to the SD
 
 - By the **bootstrap** method 
 ```javascript
-const featureflags = [{ // the array should contain all your feature flags
-  id: string, // the feature flag key
+// this array should contain all your feature flags
+const featureflags = [{
+  // feature flag key name
+  id: string,
+  // variation value
   variation: string,
-  variationType: string, // the variation data type, string is used if not provided
-  sendToExperiment: boolean,
-  timestamp: number,
-  variationOptions: [{
-    id: number,
-    value: string
-  }]
+  // variation data type, string will used if not specified
+  variationType: string
 }]
 
 Ffc.bootstrap(featureflags);
